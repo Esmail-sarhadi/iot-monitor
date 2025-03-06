@@ -215,7 +215,141 @@ echo "sudo systemctl start network-monitor-internal"
    ```
    در صورت نیاز می‌توانید پورت 5000 را به پورت دیگری تغییر دهید.
 
-برای راه‌اندازی، این کد را در فایل `internal_server.py` در پوشه پروژه خود قرار دهید. فایل HTML را نیز در پوشه `templates` با نام `index.html` قرار دهید. سپس با استفاده از سرویس systemd که قبلاً آماده کردیم، برنامه را اجرا کنید.
+برای راه‌اندازی، این کد را در فایل `internal_server.py` در پوشه پروژه خود قرار دهید. فایل HTML را نیز در پوشه `templates` با نام `index.html` 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+قرار دهید. سپس با استفاده از سرویس systemd که قبلاً آماده کردیم، برنامه را اجرا کنید.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+برای حل مشکل شما، چند روش مختلف وجود دارد که میتوانید فلسک را به صورت دائمی اجرا کنید. مشکل Permission Denied احتمالاً به دلیل روش ایجاد فایل سرویس است.
+
+## روش اول: اصلاح روش ایجاد فایل سرویس
+
+برای ایجاد فایل سرویس به صورت صحیح از sudo استفاده کنید:
+
+```bash
+sudo bash -c 'cat > /etc/systemd/system/network-monitor-internal.service << EOF
+[Unit]
+Description=Internal Network Monitoring Server
+After=network.target
+
+[Service]
+User=sarhadi
+WorkingDirectory=/home/sarhadi/iot-monitor
+ExecStart=/home/sarhadi/iot-monitor/www/bin/python3 /home/sarhadi/iot-monitor/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+```
+
+سپس سرویس را فعال و اجرا کنید:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable network-monitor-internal.service
+sudo systemctl start network-monitor-internal.service
+```
+
+## روش دوم: استفاده از Screen یا Tmux
+
+اگر نمی‌خواهید از systemd استفاده کنید، می‌توانید از Screen یا Tmux استفاده کنید:
+
+### با استفاده از Screen:
+
+```bash
+# نصب screen
+sudo apt-get install screen
+
+# اجرای اپلیکیشن در یک screen
+screen -S flask_app
+cd /home/sarhadi/iot-monitor
+./www/bin/python3 app.py
+
+# برای خروج از صفحه بدون بستن برنامه: Ctrl+A و سپس D
+# برای اتصال مجدد:
+screen -r flask_app
+```
+
+### با استفاده از Tmux:
+
+```bash
+# نصب tmux
+sudo apt-get install tmux
+
+# اجرای اپلیکیشن در یک tmux session
+tmux new -s flask_app
+cd /home/sarhadi/iot-monitor
+./www/bin/python3 app.py
+
+# برای خروج از صفحه بدون بستن برنامه: Ctrl+B و سپس D
+# برای اتصال مجدد:
+tmux attach -t flask_app
+```
+
+## روش سوم: استفاده از nohup
+
+```bash
+cd /home/sarhadi/iot-monitor
+nohup ./www/bin/python3 app.py > flask.log 2>&1 &
+```
+
+## روش چهارم: استفاده از supervisor
+
+```bash
+# نصب supervisor
+sudo apt-get install supervisor
+
+# ایجاد فایل کانفیگ
+sudo nano /etc/supervisor/conf.d/flask_app.conf
+```
+
+محتوای فایل:
+```
+[program:flask_app]
+directory=/home/sarhadi/iot-monitor
+command=/home/sarhadi/iot-monitor/www/bin/python3 app.py
+user=sarhadi
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/flask_app.err.log
+stdout_logfile=/var/log/flask_app.out.log
+```
+
+سپس:
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start flask_app
+```
+
+systemd مطمئن‌ترین و توصیه‌شده‌ترین روش است، زیرا پس از ریستارت سیستم نیز به صورت خودکار اجرا می‌شود.
 
 
 
