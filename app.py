@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, send_file
+from flask import Flask, render_template, jsonify, request, send_file, redirect, url_for, session
 import sqlite3
 import socket
 import threading
@@ -13,16 +13,18 @@ import json
 import subprocess
 import platform
 from apscheduler.schedulers.background import BackgroundScheduler
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = 'secret_key_for_tps_monitoring_system'
 
-# Database configuration
+VALID_USERNAME = "TPS"
+VALID_PASSWORD = "S3cur3M0n1t0r1ngP@$$w0rd!"
+
 DATABASE = 'network_monitoring.db'
 
-# Timezone configuration
 iran_timezone = pytz.timezone('Asia/Tehran')
 
-# Gateway configuration
 GATEWAYS = {
     'gw1': '172.18.63.41',
     'gw2': '172.18.63.42',
@@ -32,7 +34,6 @@ GATEWAYS = {
     'gw6': '172.18.63.46'
 }
 
-# Client and PLC configuration
 CLIENTS = {
     'gw1': [
         {'name': 'gw1-c1', 'ip': '172.18.64.41', 'plc_ip': '172.18.64.51'},
@@ -77,6 +78,42 @@ EXTERNAL_SERVER = 'http://185.80.196.129:6500'
 COLLECT_PERFORMANCE_METRICS = True
 PING_TIMEOUT = 1
 PING_COUNT = 1
+PLC_MAX_LATENCY = 2000
+PLC_ACCEPTABLE_LOSS = 60
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username == VALID_USERNAME and password == VALID_PASSWORD:
+            session['user_id'] = username
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('index'))
+        else:
+            error = 'نام کاربری یا رمز عبور نادرست است'
+
+    return render_template('login.html', error=error)
+
+
+# Ruta para cerrar sesión
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
 
 
 def init_db():
@@ -195,6 +232,111 @@ def check_port_80(ip, max_retries=3, timeout=2):
         except:
             pass
     return False, response_time
+
+
+def check_plc_with_tolerance(plc_ip, timeout=PING_TIMEOUT, count=PING_COUNT, max_retry=2):
+    """
+    Check PLC connectivity with tolerance for high latency and some packet loss.
+    Returns:
+        - status (bool): True if PLC is considered online
+        - response_time (float): Average response time if available
+        - packet_loss (float): Packet loss percentage
+        - debug_info (str): Additional debug information
+    """
+    debug_info = ""
+
+    for attempt in range(max_retry):
+        try:
+            # Different ping command syntax based on operating system
+            if platform.system().lower() == "windows":
+                ping_cmd = ["ping", "-n", str(count), "-w", str(timeout * 1000), plc_ip]
+            else:
+                ping_cmd = ["ping", "-c", str(count), "-W", str(timeout), plc_ip]
+
+            # Execute ping command and capture output
+            ping_output = subprocess.check_output(ping_cmd, stderr=subprocess.STDOUT, universal_newlines=True)
+            debug_info = f"Attempt {attempt + 1} output: {ping_output[:100]}..."
+
+            # Parse output to extract packet loss and response time
+            response_time = None
+            packet_loss = None
+            received_any = False
+
+            if platform.system().lower() == "windows":
+                # Parse Windows ping output
+                for line in ping_output.splitlines():
+                    if "Average" in line:
+                        time_str = line.split("=")[1].strip().replace("ms", "")
+                        try:
+                            response_time = float(time_str)
+                        except ValueError:
+                            pass
+                    if "Lost" in line:
+                        try:
+                            loss_part = line.split("(")[1].split("%")[0]
+                            packet_loss = float(loss_part)
+                        except (IndexError, ValueError):
+                            packet_loss = None
+                    if "Reply from" in line:
+                        received_any = True
+            else:
+                # Parse Linux/Unix ping output
+                for line in ping_output.splitlines():
+                    if "min/avg/max" in line:
+                        parts = line.split("=")[1].strip().split("/")
+                        try:
+                            response_time = float(parts[1])  # avg is the second value
+                        except (IndexError, ValueError):
+                            pass
+                    if "packet loss" in line:
+                        try:
+                            loss_part = line.split(",")[2].strip().split("%")[0]
+                            packet_loss = float(loss_part)
+                        except (IndexError, ValueError):
+                            packet_loss = None
+                    if "bytes from" in line:
+                        received_any = True
+
+            # Determine status based on packet loss and latency
+            status = False
+
+            # If we received any packets, check against thresholds
+            if received_any:
+                # Consider online if:
+                # 1. Packet loss is below threshold OR
+                # 2. We received any responses and don't know the packet loss
+                if (packet_loss is not None and packet_loss <= PLC_ACCEPTABLE_LOSS) or \
+                        (packet_loss is None and received_any):
+                    status = True
+
+                # Check latency if applicable
+                if status and response_time is not None and response_time > PLC_MAX_LATENCY:
+                    debug_info += f" High latency: {response_time}ms > {PLC_MAX_LATENCY}ms threshold"
+                    # Still consider it online but note the high latency
+
+            # If we got any meaningful result, return it
+            if packet_loss is not None or received_any:
+                return status, response_time, packet_loss, debug_info
+
+        except subprocess.CalledProcessError:
+            debug_info += f" Ping command failed on attempt {attempt + 1}"
+        except Exception as e:
+            debug_info += f" Error on attempt {attempt + 1}: {str(e)}"
+
+        # Wait before retry
+        time.sleep(1)
+
+    # If all attempts failed
+    return False, None, 100.0, debug_info
+
+
+# Add this logging function to help debug PLC issues
+def log_plc_check(plc_name, plc_ip, status, response_time, packet_loss, debug_info):
+    """Log detailed information about PLC checks to help with troubleshooting"""
+    with open('plc_check_log.txt', 'a') as f:
+        timestamp = datetime.datetime.now(iran_timezone).strftime('%Y-%m-%d %H:%M:%S')
+        f.write(f"[{timestamp}] PLC: {plc_name} ({plc_ip}) - Status: {'Online' if status else 'Offline'}, "
+                f"Response: {response_time}ms, Loss: {packet_loss}%, Info: {debug_info}\n")
 
 
 def ping_device(ip, count=PING_COUNT, timeout=PING_TIMEOUT):
@@ -419,7 +561,14 @@ def check_all_devices():
             if 'plc_ip' in client:
                 plc_ip = client['plc_ip']
                 plc_name = f"{client['name']}-plc"
-                ping_status, ping_time, packet_loss = ping_device(plc_ip)
+
+                # Use the improved PLC check function
+                ping_status, ping_time, packet_loss, debug_info = check_plc_with_tolerance(plc_ip)
+
+                # Log detailed information for debugging
+                log_plc_check(plc_name, plc_ip, ping_status, ping_time, packet_loss, debug_info)
+
+                # Save status to database
                 save_plc_status(plc_name, plc_ip, client['name'], gw_name, 1 if ping_status else 0, ping_time)
 
                 # Save PLC performance metrics
@@ -427,11 +576,11 @@ def check_all_devices():
                     save_performance_metrics(plc_name, plc_ip, 'plc', gw_name, ping_time, packet_loss)
 
     # After checking all devices, send the data to the external server
-    # try:
-    #     send_data_to_external_server()
-    # except Exception as e:
-    #     print(
-    #         f"[{datetime.datetime.now(iran_timezone).strftime('%Y-%m-%d %H:%M:%S')}] Error sending data to external server: {str(e)}")
+    try:
+        send_data_to_external_server()
+    except Exception as e:
+        print(
+            f"[{datetime.datetime.now(iran_timezone).strftime('%Y-%m-%d %H:%M:%S')}] Error sending data to external server: {str(e)}")
 
     # Cleanup old performance metrics (keep only last 30 days)
     cleanup_old_data()
@@ -774,6 +923,8 @@ def get_performance_data(device_name, device_type, timespan="24h"):
 
     conn.close()
     return metrics
+
+
 def get_summary_data():
     """Retrieve summary data including gateways, clients, and PLCs"""
     conn = sqlite3.connect(DATABASE)
@@ -891,31 +1042,37 @@ def get_summary_data():
         'gateways': gateways_summary
     }
 
+
 @app.route('/')
+@login_required
 def index():
     """Render main dashboard page"""
     return render_template('index.html')
 
 
 @app.route('/api/gateways')
+@login_required
 def get_gateways_route():
     """Return list of all gateways"""
     return jsonify(get_gateways_data())
 
 
 @app.route('/api/clients/<gateway>')
+@login_required
 def get_clients_by_gateway_route(gateway):
     """Return clients for a specific gateway"""
     return jsonify(get_clients_data(gateway))
 
 
 @app.route('/api/plcs/<gateway>')
+@login_required
 def get_plcs_by_gateway_route(gateway):
     """Return PLCs for a specific gateway"""
     return jsonify(get_plcs_data(gateway))
 
 
 @app.route('/api/history/<device_name>')
+@login_required
 def get_device_history_route(device_name):
     """Return history for a specific device"""
     limit = request.args.get('limit', 100, type=int)
@@ -924,6 +1081,7 @@ def get_device_history_route(device_name):
 
 
 @app.route('/api/performance/<device_name>')
+@login_required
 def get_performance_data_route(device_name):
     """Return performance data for a specific device"""
     device_type = request.args.get('type', 'client')
@@ -932,18 +1090,21 @@ def get_performance_data_route(device_name):
 
 
 @app.route('/api/summary')
+@login_required
 def get_summary_route():
     """Return system summary data"""
     return jsonify(get_summary_data())
 
 
 @app.route('/api/alerts')
+@login_required
 def get_alerts_route():
     """Return active alerts"""
     return jsonify(get_active_alerts())
 
 
 @app.route('/api/check_now')
+@login_required
 def manual_check():
     """Manually trigger a check of all devices"""
     threading.Thread(target=check_all_devices).start()
@@ -951,6 +1112,7 @@ def manual_check():
 
 
 @app.route('/download/history/<device_name>')
+@login_required
 def download_device_history(device_name):
     """Download history for a specific device as CSV"""
     device_type = request.args.get('type', None)
@@ -1022,6 +1184,7 @@ def download_device_history(device_name):
 
 
 @app.route('/download/all_history')
+@login_required
 def download_all_history():
     """Download history for all devices as CSV"""
     history_type = request.args.get('type', 'all')
@@ -1113,6 +1276,7 @@ def download_all_history():
 
 
 @app.route('/download/performance/<device_name>')
+@login_required
 def download_performance_data(device_name):
     """Download performance metrics for a specific device as CSV"""
     device_type = request.args.get('type', 'client')
@@ -1166,6 +1330,15 @@ def download_performance_data(device_name):
     )
 
 
+# Ruta para obtener el historial reciente (agregada para completitud)
+@app.route('/api/recent_history')
+@login_required
+def get_recent_history_route():
+    """Return recent history for all devices"""
+    limit = request.args.get('limit', 100, type=int)
+    return jsonify(get_recent_history(limit))
+
+
 def start_scheduler():
     """Start the background scheduler for periodic device checks"""
     scheduler = BackgroundScheduler(timezone=str(iran_timezone))
@@ -1190,4 +1363,3 @@ if __name__ == '__main__':
 
     # Start Flask application
     app.run(host='0.0.0.0', port=5000, debug=True)
-
