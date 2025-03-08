@@ -1,269 +1,681 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم مانیتورینگ شبکه</title>
+    <title>سیستم مانیتورینگ شبکه صنعتی</title>
     <!-- فونت وزیر -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
     <!-- Bootstrap RTL -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Moment.js for time handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-jalaali/0.9.6/moment-jalaali.min.js"></script>
+    <!-- ApexCharts for advanced visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --success-color: #09bc8a;
-            --danger-color: #ef476f;
-            --warning-color: #ffd166;
-            --info-color: #4cc9f0;
-            --dark-color: #1d3557;
-            --light-color: #f8f9fa;
+            --primary-color: #2563eb;
+            --secondary-color: #1d4ed8;
+            --success-color: #16a34a;
+            --warning-color: #ca8a04;
+            --danger-color: #dc2626;
+            --info-color: #0891b2;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+            --card-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            --transition-speed: 0.3s;
         }
-        
+
         body {
             font-family: 'Vazir', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #f1f5f9;
+            overflow-x: hidden;
+            color: #1e293b;
         }
-        
+
+        /* Navbar styling */
         .navbar {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(90deg, #1e3a8a, #3b82f6);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
         }
-        
+
         .navbar-brand {
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1.5rem;
             color: white;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
-        
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            border: none;
-            overflow: hidden;
+
+        .time-display {
+            font-size: 1.1rem;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Button styling */
+        .btn {
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 500;
             transition: all 0.3s ease;
         }
-        
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background-color: #15803d;
+            border-color: #15803d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Card styling */
+        .card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all var(--transition-speed) ease;
+        }
+
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--hover-shadow);
         }
-        
+
         .card-header {
             padding: 15px 20px;
-            font-weight: bold;
+            font-weight: 700;
             border-bottom: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        
+
         .gateway-card .card-header {
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(to right, #1e40af, #3b82f6);
             color: white;
         }
-        
+
         .client-card .card-header {
-            background: linear-gradient(to right, var(--info-color), #4895ef);
+            background: linear-gradient(to right, #0e7490, #06b6d4);
             color: white;
         }
-        
+
+        .plc-card .card-header {
+            background: linear-gradient(to right, #7e22ce, #a855f7);
+            color: white;
+        }
+
+        .performance-card .card-header {
+            background: linear-gradient(to right, #15803d, #22c55e);
+            color: white;
+        }
+
+        .alerts-card .card-header {
+            background: linear-gradient(to right, #b91c1c, #ef4444);
+            color: white;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Status indicators */
         .status-indicator {
             display: inline-block;
             width: 15px;
             height: 15px;
             border-radius: 50%;
             margin-left: 8px;
-            position: relative;
         }
-        
+
         .status-online {
             background-color: var(--success-color);
             box-shadow: 0 0 10px var(--success-color);
             animation: pulse-green 2s infinite;
         }
-        
+
         .status-offline {
             background-color: var(--danger-color);
             box-shadow: 0 0 10px var(--danger-color);
             animation: pulse-red 2s infinite;
         }
-        
+
+        .status-warning {
+            background-color: var(--warning-color);
+            box-shadow: 0 0 10px var(--warning-color);
+            animation: pulse-orange 2s infinite;
+        }
+
         @keyframes pulse-green {
             0% {
-                box-shadow: 0 0 0 0 rgba(9, 188, 138, 0.7);
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
             }
             70% {
-                box-shadow: 0 0 0 10px rgba(9, 188, 138, 0);
+                box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
             }
             100% {
-                box-shadow: 0 0 0 0 rgba(9, 188, 138, 0);
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
             }
         }
-        
+
         @keyframes pulse-red {
             0% {
-                box-shadow: 0 0 0 0 rgba(239, 71, 111, 0.7);
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
             }
             70% {
-                box-shadow: 0 0 0 10px rgba(239, 71, 111, 0);
+                box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
             }
             100% {
-                box-shadow: 0 0 0 0 rgba(239, 71, 111, 0);
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
             }
         }
-        
-        .time-display {
-            font-size: 1.1rem;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 25px;
-            background-color: rgba(255, 255, 255, 0.15);
+
+        @keyframes pulse-orange {
+            0% {
+                box-shadow: 0 0 0 0 rgba(202, 138, 4, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(202, 138, 4, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(202, 138, 4, 0);
+            }
         }
-        
-        .log-container {
-            max-height: 200px;
-            overflow-y: auto;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #dee2e6;
-        }
-        
-        .log-title {
-            font-weight: bold;
-            margin-top: 10px;
-            margin-bottom: 5px;
-            color: var(--dark-color);
-        }
-        
-        .log-entry {
-            padding: 8px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
-        
-        .log-online {
-            background-color: rgba(9, 188, 138, 0.1);
-            border-right: 3px solid var(--success-color);
-        }
-        
-        .log-offline {
-            background-color: rgba(239, 71, 111, 0.1);
-            border-right: 3px solid var(--danger-color);
-        }
-        
+
+        /* Stat cards */
         .stats-card {
             text-align: center;
-            padding: 10px;
+            padding: 15px;
+            height: 100%;
+            transition: all var(--transition-speed) ease;
         }
-        
-        .stats-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
+
+        .stats-card:hover {
+            transform: translateY(-5px);
         }
-        
-        .stats-label {
-            font-size: 1rem;
-            color: #6c757d;
-        }
-        
+
         .stats-icon {
             font-size: 2rem;
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .stats-card:hover .stats-icon {
+            transform: scale(1.1);
+        }
+
+        .stats-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .stats-card:hover .stats-value {
+            transform: scale(1.05);
+        }
+
+        .stats-label {
+            font-size: 1.1rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stats-total { background-color: var(--primary-color); }
+        .stats-online { background-color: var(--success-color); }
+        .stats-offline { background-color: var(--danger-color); }
+        .stats-warning { background-color: var(--warning-color); }
+        .stats-uptime { background-color: var(--info-color); }
+        .stats-response { background-color: #8b5cf6; }
+
+        /* Tables */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            padding: 12px;
+            border-color: #e2e8f0;
+        }
+
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+            border-color: #e2e8f0;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Badge styling */
+        .badge {
+            padding: 7px 12px;
+            font-weight: 500;
+            border-radius: 8px;
+        }
+
+        .badge-status {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 8px;
+        }
+
+        /* Log container */
+        .log-container {
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            scrollbar-width: thin;
+        }
+
+        .log-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .log-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 6px;
+        }
+
+        .log-title {
+            font-weight: 600;
+            margin-top: 15px;
             margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .log-entry:hover {
+            transform: translateX(-5px);
+        }
+
+        .log-online {
+            background-color: rgba(22, 163, 74, 0.1);
+            border-right: 3px solid var(--success-color);
+        }
+
+        .log-offline {
+            background-color: rgba(220, 38, 38, 0.1);
+            border-right: 3px solid var(--danger-color);
+        }
+
+        /* Alert styles */
+        .alert-item {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-right: 4px solid;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .alert-item:hover {
+            transform: translateX(-5px);
+        }
+
+        .alert-disconnect {
+            background-color: rgba(220, 38, 38, 0.1);
+            border-right-color: var(--danger-color);
+        }
+
+        .alert-reconnect {
+            background-color: rgba(22, 163, 74, 0.1);
+            border-right-color: var(--success-color);
+        }
+
+        .alert-warning {
+            background-color: rgba(202, 138, 4, 0.1);
+            border-right-color: var(--warning-color);
+        }
+
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* Network map */
+        .network-map {
+            background-color: #f8fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+            min-height: 400px;
+        }
+
+        .gateway-node, .client-node, .plc-node {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .gateway-node:hover, .client-node:hover, .plc-node:hover {
+            transform: scale(1.05);
+        }
+
+        .node-icon {
             width: 60px;
             height: 60px;
             line-height: 60px;
             border-radius: 50%;
-            margin: 0 auto 15px auto;
-            color: white;
+            background-color: white;
+            margin: 0 auto;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
-        
-        .stats-total {
-            background-color: var(--primary-color);
+
+        .gateway-node .node-icon { color: var(--primary-color); border: 2px solid var(--primary-color); }
+        .client-node .node-icon { color: var(--info-color); border: 2px solid var(--info-color); }
+        .plc-node .node-icon { color: var(--secondary-color); border: 2px solid var(--secondary-color); }
+
+        .node-name {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
-        
-        .stats-online {
-            background-color: var(--success-color);
-        }
-        
-        .stats-offline {
-            background-color: var(--danger-color);
-        }
-        
-        .stats-uptime {
-            background-color: var(--info-color);
-        }
-        
-        .date-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            background-color: var(--secondary-color);
-            color: white;
-            border-radius: 5px;
+
+        .node-status {
             font-size: 0.8rem;
-            margin-right: 10px;
+            margin-top: 5px;
         }
-        
-        .table th {
-            background-color: #e9ecef;
+
+        .node-online { color: var(--success-color); }
+        .node-offline { color: var(--danger-color); }
+
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 20px;
         }
-        
-        .refresh-btn {
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
+
+        .nav-tabs .nav-link {
+            border: none;
+            color: #64748b;
+            font-weight: 600;
+            padding: 12px 20px;
+            margin-right: 5px;
+            transition: all var(--transition-speed) ease;
         }
-        
-        .refresh-btn:hover {
-            transform: scale(1.05);
+
+        .nav-tabs .nav-link:hover {
+            color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+            border-color: transparent;
         }
-        
-        .refresh-btn:active {
-            transform: scale(0.95);
+
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            background-color: transparent;
+            border-bottom: 3px solid var(--primary-color);
         }
-        
-        .refresh-btn.refreshing i {
-            animation: rotating 1s linear infinite;
-        }
-        
-        @keyframes rotating {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        
-        .badge-status {
-            padding: 5px 10px;
-            border-radius: 50px;
-            font-weight: normal;
-        }
-        
+
+        /* Footer */
         .footer {
-            background: linear-gradient(90deg, var(--dark-color), #2b2d42);
+            background: linear-gradient(90deg, var(--dark-color), #334155);
             color: white;
             padding: 30px 0;
             margin-top: 30px;
         }
-        
-        /* تنظیمات موبایل */
+
+        /* Animation for refresh button */
+        .refreshing i {
+            animation: rotating 1s linear infinite;
+        }
+
+        @keyframes rotating {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
         @media (max-width: 768px) {
             .stats-value {
                 font-size: 1.8rem;
             }
-            
+
             .stats-icon {
                 width: 50px;
                 height: 50px;
                 line-height: 50px;
                 font-size: 1.5rem;
             }
+
+            .card-header {
+                padding: 12px 15px;
+            }
+
+            .card-body {
+                padding: 15px;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .time-display {
+                font-size: 0.9rem;
+                padding: 6px 10px;
+            }
+        }
+
+        /* Tooltip styling */
+        .tooltip-inner {
+            background-color: var(--dark-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'Vazir', sans-serif;
+        }
+
+        /* Performance metrics section */
+        .metric-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .metric-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #334155;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .metric-unit {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        /* Quick Filter Dropdown */
+        .filter-dropdown {
+            margin-bottom: 20px;
+        }
+
+        .filter-dropdown .dropdown-menu {
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: none;
+            padding: 10px;
+        }
+
+        .filter-dropdown .dropdown-item {
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-dropdown .dropdown-item:hover {
+            background-color: #f1f5f9;
+            transform: translateX(-5px);
+        }
+
+        /* Device Details Modal */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .modal-header {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .modal-header .close {
+            color: white;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            border-top: none;
+            padding: 15px 20px;
+        }
+
+        .device-details-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .device-icon {
+            font-size: 2rem;
+            margin-left: 15px;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            border-radius: 50%;
+        }
+
+        .gateway-icon {
+            color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        .client-icon {
+            color: var(--info-color);
+            background-color: rgba(8, 145, 178, 0.1);
+        }
+
+        .plc-icon {
+            color: var(--secondary-color);
+            background-color: rgba(126, 34, 206, 0.1);
+        }
+
+        .details-title {
+            flex-grow: 1;
+        }
+
+        .details-title h5 {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .details-title .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -273,7 +685,7 @@
         <div class="container">
             <a class="navbar-brand" href="#">
                 <i class="fas fa-network-wired me-2"></i>
-                سیستم مانیتورینگ شبکه
+                سیستم مانیتورینگ شبکه صنعتی
             </a>
             <div class="ms-auto time-display" id="current-time">
                 <i class="far fa-clock me-1"></i>
@@ -284,284 +696,738 @@
 
     <!-- Main Content -->
     <div class="container">
-        <!-- خلاصه وضعیت -->
-        <div class="row mb-4">
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card h-100">
-                    <div class="card-body stats-card">
-                        <div class="stats-icon stats-total">
-                            <i class="fas fa-server"></i>
-                        </div>
-                        <div class="stats-value text-primary" id="total-devices">0</div>
-                        <div class="stats-label">کل دستگاه‌ها</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card h-100">
-                    <div class="card-body stats-card">
-                        <div class="stats-icon stats-online">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stats-value text-success" id="online-devices">0</div>
-                        <div class="stats-label">دستگاه‌های آنلاین</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card h-100">
-                    <div class="card-body stats-card">
-                        <div class="stats-icon stats-offline">
-                            <i class="fas fa-times-circle"></i>
-                        </div>
-                        <div class="stats-value text-danger" id="offline-devices">0</div>
-                        <div class="stats-label">دستگاه‌های آفلاین</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-3">
-                <div class="card h-100">
-                    <div class="card-body stats-card">
-                        <div class="stats-icon stats-uptime">
-                            <i class="fas fa-tachometer-alt"></i>
-                        </div>
-                        <div class="stats-value text-info" id="uptime-percent">0%</div>
-                        <div class="stats-label">میزان آپ‌تایم</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- دکمه بروزرسانی -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0">وضعیت شبکه</h2>
-            <div>
-                <button id="refresh-btn" class="btn btn-primary refresh-btn">
-                    <i class="fas fa-sync-alt me-1"></i> بروزرسانی
+        <!-- Tabs for different views -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard" type="button" role="tab" aria-controls="dashboard" aria-selected="true">
+                    <i class="fas fa-tachometer-alt me-2"></i>داشبورد
                 </button>
-                <a href="/download/all_history" class="btn btn-success ms-2">
-                    <i class="fas fa-download me-1"></i> دانلود گزارش کامل
-                </a>
-            </div>
-        </div>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="map-tab" data-bs-toggle="tab" data-bs-target="#network-map" type="button" role="tab" aria-controls="network-map" aria-selected="false">
+                    <i class="fas fa-project-diagram me-2"></i>نقشه شبکه
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button" role="tab" aria-controls="alerts" aria-selected="false">
+                    <i class="fas fa-exclamation-triangle me-2"></i>هشدارها
+                    <span class="badge bg-danger rounded-pill ms-1" id="alerts-count">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-controls="reports" aria-selected="false">
+                    <i class="fas fa-chart-line me-2"></i>گزارش‌ها
+                </button>
+            </li>
+        </ul>
 
-        <!-- بخش گیت‌وی‌ها -->
-        <div class="card gateway-card mb-4">
-            <div class="card-header">
-                <i class="fas fa-sitemap me-1"></i> وضعیت گیت‌وی‌ها
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>نام گیت‌وی</th>
-                                <th>آدرس IP</th>
-                                <th>وضعیت</th>
-                                <th>کلاینت‌های آنلاین</th>
-                                <th>آخرین بررسی</th>
-                                <th>عملیات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gateways-table">
-                            <tr>
-                                <td colspan="6" class="text-center">در حال بارگذاری...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <div class="tab-content" id="mainTabsContent">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                <!-- خلاصه وضعیت -->
+                <div class="row mb-4">
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body stats-card">
+                                <div class="stats-icon stats-total">
+                                    <i class="fas fa-server"></i>
+                                </div>
+                                <div class="stats-value text-primary" id="total-devices">0</div>
+                                <div class="stats-label">کل دستگاه‌ها</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body stats-card">
+                                <div class="stats-icon stats-online">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stats-value text-success" id="online-devices">0</div>
+                                <div class="stats-label">دستگاه‌های آنلاین</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body stats-card">
+                                <div class="stats-icon stats-offline">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="stats-value text-danger" id="offline-devices">0</div>
+                                <div class="stats-label">دستگاه‌های آفلاین</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body stats-card">
+                                <div class="stats-icon stats-total" style="background-color: #9333ea;">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                                <div class="stats-value" style="color: #9333ea;" id="total-plcs">0</div>
+                                <div class="stats-label">کل PLC‌ها</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body stats-card">
+                                <div class="stats-icon stats-uptime">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </div>
+                                <div class="stats-value text-info" id="uptime-percent">0%</div>
+                                <div class="stats-label">میزان آپ‌تایم</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body stats-card">
+                                <div class="stats-icon stats-response">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="stats-value" style="color: #8b5cf6;" id="avg-response-time">0</div>
+                                <div class="stats-label">میانگین پاسخ (ms)</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- بخش‌های کلاینت‌ها -->
-        <div class="row" id="clients-container">
-            <!-- کلاینت‌های گیت‌وی 1 -->
-            <div class="col-md-6 mb-4">
-                <div class="card client-card h-100">
+                <!-- دکمه بروزرسانی -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">وضعیت شبکه</h2>
+                    <div>
+                        <button id="check-now-btn" class="btn btn-warning me-2">
+                            <i class="fas fa-sync-alt me-1"></i> بررسی فوری
+                        </button>
+                        <button id="refresh-btn" class="btn btn-primary refresh-btn me-2">
+                            <i class="fas fa-sync-alt me-1"></i> بروزرسانی
+                        </button>
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-success dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-download me-1"></i> دانلود گزارش
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="reportDropdown">
+                                <li><a class="dropdown-item" href="/download/all_history">گزارش کامل تاریخچه</a></li>
+                                <li><a class="dropdown-item" href="/download/all_history?type=device">گزارش تاریخچه دستگاه‌ها</a></li>
+                                <li><a class="dropdown-item" href="/download/all_history?type=plc">گزارش تاریخچه PLCها</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- بخش گیت‌وی‌ها -->
+                <div class="card gateway-card mb-4">
                     <div class="card-header">
-                        <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway1-name">گیت‌وی 1</span>
+                        <div>
+                            <i class="fas fa-sitemap me-1"></i> وضعیت گیت‌وی‌ها
+                        </div>
+                        <div>
+                            <span class="badge bg-primary rounded-pill" id="gateway-count">0</span>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>نام کلاینت</th>
+                                        <th>نام گیت‌وی</th>
                                         <th>آدرس IP</th>
                                         <th>وضعیت</th>
+                                        <th>کلاینت‌ها</th>
+                                        <th>PLCها</th>
+                                        <th>زمان پاسخ</th>
+                                        <th>آخرین بررسی</th>
                                         <th>عملیات</th>
                                     </tr>
                                 </thead>
-                                <tbody id="clients-gw1">
+                                <tbody id="gateways-table">
                                     <tr>
-                                        <td colspan="4" class="text-center">در حال بارگذاری...</td>
+                                        <td colspan="8" class="text-center">در حال بارگذاری...</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="log-title">آخرین رویدادها:</div>
-                        <div class="log-container" id="log-gw1">
-                            <div class="text-center text-muted">لاگی موجود نیست</div>
+                    </div>
+                </div>
+
+                <!-- بخش‌های کلاینت‌ها -->
+                <div class="row" id="clients-container">
+                    <!-- کلاینت‌های گیت‌وی 1 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card client-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway1-name">گیت‌وی 1</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info rounded-pill" id="clients-count-gw1">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام کلاینت</th>
+                                                <th>آدرس IP</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clients-gw1">
+                                            <tr>
+                                                <td colspan="5" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="log-title">آخرین رویدادها:</div>
+                                <div class="log-container" id="log-gw1">
+                                    <div class="text-center text-muted">لاگی موجود نیست</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- کلاینت‌های گیت‌وی 2 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card client-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway2-name">گیت‌وی 2</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info rounded-pill" id="clients-count-gw2">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام کلاینت</th>
+                                                <th>آدرس IP</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clients-gw2">
+                                            <tr>
+                                                <td colspan="5" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="log-title">آخرین رویدادها:</div>
+                                <div class="log-container" id="log-gw2">
+                                    <div class="text-center text-muted">لاگی موجود نیست</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card client-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway3-name">گیت‌وی 3</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info rounded-pill" id="clients-count-gw3">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام کلاینت</th>
+                                                <th>آدرس IP</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clients-gw3">
+                                            <tr>
+                                                <td colspan="5" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="log-title">آخرین رویدادها:</div>
+                                <div class="log-container" id="log-gw3">
+                                    <div class="text-center text-muted">لاگی موجود نیست</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card client-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway4-name">گیت‌وی 4</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info rounded-pill" id="clients-count-gw4">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام کلاینت</th>
+                                                <th>آدرس IP</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clients-gw4">
+                                            <tr>
+                                                <td colspan="5" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="log-title">آخرین رویدادها:</div>
+                                <div class="log-container" id="log-gw4">
+                                    <div class="text-center text-muted">لاگی موجود نیست</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card client-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway5-name">گیت‌وی 5</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info rounded-pill" id="clients-count-gw5">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام کلاینت</th>
+                                                <th>آدرس IP</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clients-gw5">
+                                            <tr>
+                                                <td colspan="5" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="log-title">آخرین رویدادها:</div>
+                                <div class="log-container" id="log-gw5">
+                                    <div class="text-center text-muted">لاگی موجود نیست</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card client-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway6-name">گیت‌وی 6</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info rounded-pill" id="clients-count-gw6">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام کلاینت</th>
+                                                <th>آدرس IP</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="clients-gw6">
+                                            <tr>
+                                                <td colspan="5" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="log-title">آخرین رویدادها:</div>
+                                <div class="log-container" id="log-gw6">
+                                    <div class="text-center text-muted">لاگی موجود نیست</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- بخش‌های PLC -->
+                <h3 class="mb-3 mt-2">وضعیت PLCها</h3>
+                <div class="row" id="plcs-container">
+                    <!-- PLCهای گیت‌وی 1 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card plc-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-microchip me-1"></i> PLCهای <span id="plc-gateway1-name">گیت‌وی 1</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-purple rounded-pill" id="plcs-count-gw1">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام PLC</th>
+                                                <th>آدرس IP</th>
+                                                <th>کلاینت مرتبط</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="plcs-gw1">
+                                            <tr>
+                                                <td colspan="6" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PLCهای گیت‌وی 2 -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card plc-card h-100">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-microchip me-1"></i> PLCهای <span id="plc-gateway2-name">گیت‌وی 2</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-purple rounded-pill" id="plcs-count-gw2">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>نام PLC</th>
+                                                <th>آدرس IP</th>
+                                                <th>کلاینت مرتبط</th>
+                                                <th>وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>عملیات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="plcs-gw2">
+                                            <tr>
+                                                <td colspan="6" class="text-center">در حال بارگذاری...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card plc-card h-100">
+                        <div class="card-header">
+                            <div>
+                                <i class="fas fa-microchip me-1"></i> PLCهای <span id="plc-gateway3-name">گیت‌وی 3</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-purple rounded-pill" id="plcs-count-gw3">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>نام PLC</th>
+                                            <th>آدرس IP</th>
+                                            <th>کلاینت مرتبط</th>
+                                            <th>وضعیت</th>
+                                            <th>زمان پاسخ</th>
+                                            <th>عملیات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plcs-gw3">
+                                        <tr>
+                                            <td colspan="6" class="text-center">در حال بارگذاری...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card plc-card h-100">
+                        <div class="card-header">
+                            <div>
+                                <i class="fas fa-microchip me-1"></i> PLCهای <span id="plc-gateway4-name">گیت‌وی 4</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-purple rounded-pill" id="plcs-count-gw4">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>نام PLC</th>
+                                            <th>آدرس IP</th>
+                                            <th>کلاینت مرتبط</th>
+                                            <th>وضعیت</th>
+                                            <th>زمان پاسخ</th>
+                                            <th>عملیات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plcs-gw4">
+                                        <tr>
+                                            <td colspan="6" class="text-center">در حال بارگذاری...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card plc-card h-100">
+                        <div class="card-header">
+                            <div>
+                                <i class="fas fa-microchip me-1"></i> PLCهای <span id="plc-gateway5-name">گیت‌وی 5</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-purple rounded-pill" id="plcs-count-gw5">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>نام PLC</th>
+                                            <th>آدرس IP</th>
+                                            <th>کلاینت مرتبط</th>
+                                            <th>وضعیت</th>
+                                            <th>زمان پاسخ</th>
+                                            <th>عملیات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plcs-gw5">
+                                        <tr>
+                                            <td colspan="6" class="text-center">در حال بارگذاری...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card plc-card h-100">
+                        <div class="card-header">
+                            <div>
+                                <i class="fas fa-microchip me-1"></i> PLCهای <span id="plc-gateway6-name">گیت‌وی 6</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-purple rounded-pill" id="plcs-count-gw6">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>نام PLC</th>
+                                            <th>آدرس IP</th>
+                                            <th>کلاینت مرتبط</th>
+                                            <th>وضعیت</th>
+                                            <th>زمان پاسخ</th>
+                                            <th>عملیات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="plcs-gw6">
+                                        <tr>
+                                            <td colspan="6" class="text-center">در حال بارگذاری...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                </div>
+
+            <!-- Network Map Tab -->
+            <div class="tab-pane fade" id="network-map" role="tabpanel" aria-labelledby="map-tab">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header gateway-card">
+                                <div>
+                                    <i class="fas fa-project-diagram me-1"></i> نقشه شبکه
+                                </div>
+                                <div>
+                                    <button id="toggle-animation-btn" class="btn btn-sm btn-light">
+                                        <i class="fas fa-play me-1"></i> نمایش انیمیشن
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="network-map-container" class="network-map">
+                                    <!-- نقشه شبکه اینجا نمایش داده می‌شود -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- کلاینت‌های گیت‌وی 2 -->
-            <div class="col-md-6 mb-4">
-                <div class="card client-card h-100">
-                    <div class="card-header">
-                        <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway2-name">گیت‌وی 2</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>نام کلاینت</th>
-                                        <th>آدرس IP</th>
-                                        <th>وضعیت</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clients-gw2">
-                                    <tr>
-                                        <td colspan="4" class="text-center">در حال بارگذاری...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="log-title">آخرین رویدادها:</div>
-                        <div class="log-container" id="log-gw2">
-                            <div class="text-center text-muted">لاگی موجود نیست</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- کلاینت‌های گیت‌وی 3 -->
-            <div class="col-md-6 mb-4">
-                <div class="card client-card h-100">
-                    <div class="card-header">
-                        <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway3-name">گیت‌وی 3</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>نام کلاینت</th>
-                                        <th>آدرس IP</th>
-                                        <th>وضعیت</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clients-gw3">
-                                    <tr>
-                                        <td colspan="4" class="text-center">در حال بارگذاری...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="log-title">آخرین رویدادها:</div>
-                        <div class="log-container" id="log-gw3">
-                            <div class="text-center text-muted">لاگی موجود نیست</div>
+            <!-- Alerts Tab -->
+            <div class="tab-pane fade" id="alerts" role="tabpanel" aria-labelledby="alerts-tab">
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card alerts-card">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-exclamation-triangle me-1"></i> هشدارهای فعال
+                                </div>
+                                <div>
+                                    <span class="badge bg-light text-dark rounded-pill" id="alerts-total-count">0</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="filter-dropdown mb-3">
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="alertFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-filter me-1"></i> فیلتر هشدارها
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="alertFilterDropdown">
+                                            <li><a class="dropdown-item alert-filter" data-filter="all" href="#">همه هشدارها</a></li>
+                                            <li><a class="dropdown-item alert-filter" data-filter="disconnect" href="#">قطع اتصال</a></li>
+                                            <li><a class="dropdown-item alert-filter" data-filter="plc" href="#">هشدارهای PLC</a></li>
+                                            <li><a class="dropdown-item alert-filter" data-filter="performance" href="#">عملکرد ضعیف</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div id="alerts-container">
+                                    <div class="text-center py-5 text-muted">
+                                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                        <p>هیچ هشدار فعالی وجود ندارد</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- کلاینت‌های گیت‌وی 4 -->
-            <div class="col-md-6 mb-4">
-                <div class="card client-card h-100">
-                    <div class="card-header">
-                        <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway4-name">گیت‌وی 4</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>نام کلاینت</th>
-                                        <th>آدرس IP</th>
-                                        <th>وضعیت</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clients-gw4">
-                                    <tr>
-                                        <td colspan="4" class="text-center">در حال بارگذاری...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="log-title">آخرین رویدادها:</div>
-                        <div class="log-container" id="log-gw4">
-                            <div class="text-center text-muted">لاگی موجود نیست</div>
+            <!-- Reports Tab -->
+            <div class="tab-pane fade" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4">
+                        <div class="card performance-card">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-chart-line me-1"></i> آمار کلی وضعیت شبکه
+                                </div>
+                                <div>
+                                    <select id="network-stats-timerange" class="form-select form-select-sm">
+                                        <option value="24h">24 ساعت اخیر</option>
+                                        <option value="7d">7 روز اخیر</option>
+                                        <option value="30d">30 روز اخیر</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="network-stats-chart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- کلاینت‌های گیت‌وی 5 -->
-            <div class="col-md-6 mb-4">
-                <div class="card client-card h-100">
-                    <div class="card-header">
-                        <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway5-name">گیت‌وی 5</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>نام کلاینت</th>
-                                        <th>آدرس IP</th>
-                                        <th>وضعیت</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clients-gw5">
-                                    <tr>
-                                        <td colspan="4" class="text-center">در حال بارگذاری...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="log-title">آخرین رویدادها:</div>
-                        <div class="log-container" id="log-gw5">
-                            <div class="text-center text-muted">لاگی موجود نیست</div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card performance-card">
+                            <div class="card-header">
+                                <div>
+                                    <i class="fas fa-tachometer-alt me-1"></i> زمان پاسخ دستگاه‌ها
+                                </div>
+                                <div>
+                                    <select id="response-time-device" class="form-select form-select-sm">
+                                        <option value="all">همه دستگاه‌ها</option>
+                                        <!-- گزینه‌های دیگر با JavaScript اضافه می‌شود -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="response-time-chart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- کلاینت‌های گیت‌وی 6 -->
-            <div class="col-md-6 mb-4">
-                <div class="card client-card h-100">
-                    <div class="card-header">
-                        <i class="fas fa-desktop me-1"></i> کلاینت‌های <span id="gateway6-name">گیت‌وی 6</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>نام کلاینت</th>
-                                        <th>آدرس IP</th>
-                                        <th>وضعیت</th>
-                                        <th>عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="clients-gw6">
-                                    <tr>
-                                        <td colspan="4" class="text-center">در حال بارگذاری...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="log-title">آخرین رویدادها:</div>
-                        <div class="log-container" id="log-gw6">
-                            <div class="text-center text-muted">لاگی موجود نیست</div>
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header gateway-card">
+                                <div>
+                                    <i class="fas fa-history me-1"></i> تاریخچه وضعیت دستگاه‌ها
+                                </div>
+                                <div>
+                                    <select id="history-device-select" class="form-select form-select-sm">
+                                        <option value="">انتخاب دستگاه...</option>
+                                        <!-- گزینه‌های دیگر با JavaScript اضافه می‌شود -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover" id="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>نام دستگاه</th>
+                                                <th>نوع</th>
+                                                <th>تغییر وضعیت</th>
+                                                <th>زمان پاسخ</th>
+                                                <th>تاریخ و زمان</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="history-table-body">
+                                            <tr>
+                                                <td colspan="5" class="text-center">لطفا یک دستگاه را انتخاب کنید</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -570,95 +1436,188 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer mt-5">
+    <footer class="footer">
         <div class="container text-center">
             <div class="row">
                 <div class="col-md-12">
-                    <h5>سیستم مانیتورینگ شبکه</h5>
-                    <p>این سیستم برای مانیتورینگ وضعیت دستگاه‌های شبکه و پورت ۸۰ آنها طراحی شده است.</p>
+                    <h5>سیستم مانیتورینگ شبکه صنعتی</h5>
+                    <p>این سیستم برای مانیتورینگ وضعیت دستگاه‌های شبکه، کلاینت‌ها و PLCها طراحی شده است.</p>
                     <p>&copy; ۱۴۰۳ - تمامی حقوق محفوظ است.</p>
                 </div>
             </div>
         </div>
     </footer>
 
+    <!-- Device Details Modal -->
+    <div class="modal fade" id="deviceDetailsModal" tabindex="-1" aria-labelledby="deviceDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deviceDetailsModalLabel">جزئیات دستگاه</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="device-details-header">
+                        <div class="device-icon gateway-icon" id="device-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="details-title">
+                            <h5 id="modal-device-name">نام دستگاه</h5>
+                            <div id="modal-device-status" class="status bg-success text-white">آنلاین</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">آدرس IP:</label>
+                                <div id="modal-device-ip">192.168.1.1</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">نوع دستگاه:</label>
+                                <div id="modal-device-type">گیت‌وی</div>
+                            </div>
+                            <div class="mb-3" id="modal-parent-gateway-container">
+                                <label class="form-label fw-bold">گیت‌وی مرتبط:</label>
+                                <div id="modal-parent-gateway">گیت‌وی 1</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">آخرین بررسی:</label>
+                                <div id="modal-last-checked">۱۴۰۲/۱۲/۱۵ ۱۲:۳۰:۰۰</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">میانگین زمان پاسخ:</label>
+                                <div id="modal-response-time">10 میلی‌ثانیه</div>
+                            </div>
+                            <div class="mb-3" id="modal-parent-client-container">
+                                <label class="form-label fw-bold">کلاینت مرتبط:</label>
+                                <div id="modal-parent-client">کلاینت 1</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="nav nav-tabs" id="deviceDetailsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="true">تاریخچه</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button" role="tab" aria-controls="performance" aria-selected="false">عملکرد</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="deviceDetailsTabsContent">
+                        <div class="tab-pane fade show active" id="history" role="tabpanel" aria-labelledby="history-tab">
+                            <div class="table-responsive mt-3">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>وضعیت</th>
+                                            <th>زمان پاسخ</th>
+                                            <th>تاریخ و زمان</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modal-device-history">
+                                        <tr>
+                                            <td colspan="3" class="text-center">در حال بارگذاری...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="performance" role="tabpanel" aria-labelledby="performance-tab">
+                            <div class="d-flex justify-content-end mt-3">
+                                <select id="performance-timerange" class="form-select form-select-sm" style="width: auto;">
+                                    <option value="24h">24 ساعت اخیر</option>
+                                    <option value="7d">7 روز اخیر</option>
+                                    <option value="30d">30 روز اخیر</option>
+                                </select>
+                            </div>
+                            <div class="chart-container mt-3">
+                                <canvas id="device-performance-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" class="btn btn-success" id="modal-download-history">
+                        <i class="fas fa-download me-1"></i> دانلود تاریخچه
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // المنت‌های مورد نیاز
+            // متغیرهای کلی
+            let allGateways = [];
+            let allClients = {};
+            let allPlcs = {};
+            let activeAlerts = [];
+            let chartInstances = {};
+            let autoRefreshInterval = null;
+            let lastRefreshTime = null;
+
+            // المنت‌های مورد نیاز برای نمایش اطلاعات
             const currentTimeEl = document.getElementById('current-time');
             const totalDevicesEl = document.getElementById('total-devices');
             const onlineDevicesEl = document.getElementById('online-devices');
             const offlineDevicesEl = document.getElementById('offline-devices');
+            const totalPlcsEl = document.getElementById('total-plcs');
             const uptimePercentEl = document.getElementById('uptime-percent');
+            const avgResponseTimeEl = document.getElementById('avg-response-time');
             const gatewaysTable = document.getElementById('gateways-table');
+            const gatewayCountEl = document.getElementById('gateway-count');
+            const alertsCountEl = document.getElementById('alerts-count');
+            const alertsTotalCountEl = document.getElementById('alerts-total-count');
+            const alertsContainer = document.getElementById('alerts-container');
             const refreshBtn = document.getElementById('refresh-btn');
-            
-            // المنت‌های گیت‌وی
-            const gateway1NameEl = document.getElementById('gateway1-name');
-            const gateway2NameEl = document.getElementById('gateway2-name');
-            const gateway3NameEl = document.getElementById('gateway3-name');
-            const gateway4NameEl = document.getElementById('gateway4-name');
-            const gateway5NameEl = document.getElementById('gateway5-name');
-            const gateway6NameEl = document.getElementById('gateway6-name');
-            
-            // المنت‌های کلاینت
-            const clientsGw1El = document.getElementById('clients-gw1');
-            const clientsGw2El = document.getElementById('clients-gw2');
-            const clientsGw3El = document.getElementById('clients-gw3');
-            const clientsGw4El = document.getElementById('clients-gw4');
-            const clientsGw5El = document.getElementById('clients-gw5');
-            const clientsGw6El = document.getElementById('clients-gw6');
-            
-            // المنت‌های لاگ
-            const logGw1El = document.getElementById('log-gw1');
-            const logGw2El = document.getElementById('log-gw2');
-            const logGw3El = document.getElementById('log-gw3');
-            const logGw4El = document.getElementById('log-gw4');
-            const logGw5El = document.getElementById('log-gw5');
-            const logGw6El = document.getElementById('log-gw6');
-            
+            const checkNowBtn = document.getElementById('check-now-btn');
+
+            // گیت‌وی‌های تعریف شده
+            const gatewayNames = ['gw1', 'gw2', 'gw3', 'gw4', 'gw5', 'gw6'];
+
             // نگاشت نام‌های گیت‌وی به المنت‌ها
-            const gatewayNameElements = {
-                'gw1': gateway1NameEl,
-                'gw2': gateway2NameEl,
-                'gw3': gateway3NameEl,
-                'gw4': gateway4NameEl,
-                'gw5': gateway5NameEl,
-                'gw6': gateway6NameEl
-            };
-            
-            // نگاشت نام‌های گیت‌وی به المنت‌های کلاینت
-            const clientsElements = {
-                'gw1': clientsGw1El,
-                'gw2': clientsGw2El,
-                'gw3': clientsGw3El,
-                'gw4': clientsGw4El,
-                'gw5': clientsGw5El,
-                'gw6': clientsGw6El
-            };
-            
-            // نگاشت نام‌های گیت‌وی به المنت‌های لاگ
-            const logElements = {
-                'gw1': logGw1El,
-                'gw2': logGw2El,
-                'gw3': logGw3El,
-                'gw4': logGw4El,
-                'gw5': logGw5El,
-                'gw6': logGw6El
-            };
-            
-            // متغیرهای کلی
-            let autoRefreshInterval = null;
-            
-            // نمایش زمان فعلی
+            const gatewayNameElements = {};
+            const plcGatewayNameElements = {};
+            const clientsCountElements = {};
+            const plcsCountElements = {};
+
+            gatewayNames.forEach((gwName, index) => {
+                const idNumber = index + 1;
+                gatewayNameElements[gwName] = document.getElementById(`gateway${idNumber}-name`);
+                plcGatewayNameElements[gwName] = document.getElementById(`plc-gateway${idNumber}-name`);
+                clientsCountElements[gwName] = document.getElementById(`clients-count-gw${idNumber}`);
+                plcsCountElements[gwName] = document.getElementById(`plcs-count-gw${idNumber}`);
+            });
+
+            // نگاشت نام‌های گیت‌وی به المنت‌های کلاینت و PLC
+            const clientsElements = {};
+            const plcsElements = {};
+            const logElements = {};
+
+            gatewayNames.forEach((gwName, index) => {
+                const idNumber = index + 1;
+                clientsElements[gwName] = document.getElementById(`clients-gw${idNumber}`);
+                plcsElements[gwName] = document.getElementById(`plcs-gw${idNumber}`);
+                logElements[gwName] = document.getElementById(`log-gw${idNumber}`);
+            });
+
+            // تنظیمات چارت
+            Chart.defaults.font.family = 'Vazir, sans-serif';
+            Chart.defaults.color = '#64748b';
+
+            // بروزرسانی زمان فعلی
             function updateCurrentTime() {
                 const now = new Date();
-                const options = { 
-                    year: 'numeric', 
-                    month: 'numeric', 
+                const options = {
+                    year: 'numeric',
+                    month: 'numeric',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
@@ -666,64 +1625,169 @@
                     hour12: false
                 };
                 currentTimeEl.innerHTML = `<i class="far fa-clock me-1"></i> ${now.toLocaleString('fa-IR', options)}`;
+
+                // نمایش زمان آخرین بروزرسانی اگر وجود دارد
+                if (lastRefreshTime) {
+                    const timeDiff = Math.floor((now - lastRefreshTime) / 1000);
+                    let refreshStatus = '';
+
+                    if (timeDiff < 60) {
+                        refreshStatus = `${timeDiff} ثانیه پیش`;
+                    } else if (timeDiff < 3600) {
+                        refreshStatus = `${Math.floor(timeDiff / 60)} دقیقه پیش`;
+                    } else {
+                        refreshStatus = `${Math.floor(timeDiff / 3600)} ساعت پیش`;
+                    }
+
+                    refreshBtn.setAttribute('title', `آخرین بروزرسانی: ${refreshStatus}`);
+                }
             }
-            
+
+            // فرمت تاریخ کامل
+            function formatDate(dateStr) {
+                if (!dateStr) return 'نامشخص';
+
+                const date = new Date(dateStr);
+                const options = {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                return date.toLocaleString('fa-IR', options);
+            }
+
+            // فرمت زمان (بدون تاریخ)
+            function formatTime(dateStr) {
+                if (!dateStr) return 'نامشخص';
+
+                const date = new Date(dateStr);
+                const options = {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                };
+                return date.toLocaleString('fa-IR', options);
+            }
+
+            // فرمت عدد
+            function formatNumber(num) {
+                if (num === null || num === undefined) return '-';
+                return num.toLocaleString('fa-IR');
+            }
+
             // دریافت داده‌ها از API
             async function fetchData() {
                 try {
                     // نمایش وضعیت بروزرسانی
                     refreshBtn.classList.add('refreshing');
                     refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> در حال بروزرسانی...';
-                    
+
                     // دریافت خلاصه وضعیت
                     const summaryResponse = await fetch('/api/summary');
                     const summaryData = await summaryResponse.json();
-                    
+
                     // دریافت لیست گیت‌وی‌ها
                     const gatewaysResponse = await fetch('/api/gateways');
                     const gatewaysData = await gatewaysResponse.json();
-                    
+
+                    // دریافت هشدارهای فعال
+                    const alertsResponse = await fetch('/api/alerts');
+                    const alertsData = await alertsResponse.json();
+
+                    // ذخیره در متغیرهای کلی
+                    allGateways = gatewaysData;
+                    activeAlerts = alertsData;
+
                     // بروزرسانی خلاصه وضعیت
                     updateSummary(summaryData);
-                    
+
                     // بروزرسانی جدول گیت‌وی‌ها
                     updateGatewaysTable(gatewaysData, summaryData);
-                    
-                    // بروزرسانی نام‌های گیت‌وی در هدر بخش‌های کلاینت
+
+                    // بروزرسانی نام‌های گیت‌وی در هدر بخش‌های کلاینت و PLC
                     updateGatewayNames(gatewaysData);
-                    
-                    // بروزرسانی کلاینت‌های هر گیت‌وی
-                    await updateAllClients();
-                    
+
+                    // بروزرسانی کلاینت‌ها و PLCهای هر گیت‌وی
+                    await updateAllClientsAndPlcs();
+
+                    // بروزرسانی هشدارها
+                    updateAlerts(alertsData);
+
+                    // بروزرسانی نمودارها
+                    updateCharts();
+
                     // بروزرسانی وضعیت پایان یافت
                     refreshBtn.classList.remove('refreshing');
                     refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> بروزرسانی';
-                    
+
+                    // بروزرسانی زمان آخرین بروزرسانی
+                    lastRefreshTime = new Date();
+
                 } catch (error) {
                     console.error('Error fetching data:', error);
                     alert('خطا در دریافت اطلاعات. لطفا مجددا تلاش کنید.');
-                    
+
                     refreshBtn.classList.remove('refreshing');
                     refreshBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> بروزرسانی';
-                    }
+                }
             }
-            
+
             // بروزرسانی خلاصه وضعیت
             function updateSummary(data) {
-                totalDevicesEl.textContent = data.total_devices;
-                onlineDevicesEl.textContent = data.online_devices;
-                offlineDevicesEl.textContent = data.offline_devices;
-                uptimePercentEl.textContent = `${data.uptime_percent}%`;
+                totalDevicesEl.textContent = formatNumber(data.total_devices);
+                onlineDevicesEl.textContent = formatNumber(data.online_devices);
+                offlineDevicesEl.textContent = formatNumber(data.offline_devices);
+                totalPlcsEl.textContent = formatNumber(data.total_plcs);
+                uptimePercentEl.textContent = `${formatNumber(data.uptime_percent)}%`;
+
+                if (data.avg_response_time !== null) {
+                    avgResponseTimeEl.textContent = formatNumber(Math.round(data.avg_response_time));
+                } else {
+                    avgResponseTimeEl.textContent = '-';
+                }
+
+                // نمایش تعداد هشدارهای فعال
+                alertsCountEl.textContent = formatNumber(data.active_alerts);
+                alertsTotalCountEl.textContent = formatNumber(data.active_alerts);
+
+                // تغییر رنگ کارت درصد آپتایم بر اساس مقدار
+                const uptimeValue = data.uptime_percent;
+                if (uptimeValue >= 90) {
+                    uptimePercentEl.className = 'stats-value text-success';
+                } else if (uptimeValue >= 75) {
+                    uptimePercentEl.className = 'stats-value text-warning';
+                } else {
+                    uptimePercentEl.className = 'stats-value text-danger';
+                }
             }
-            
+
             // بروزرسانی جدول گیت‌وی‌ها
             function updateGatewaysTable(gateways, summaryData) {
                 gatewaysTable.innerHTML = '';
-                
+
+                // بروزرسانی شمارنده تعداد گیت‌وی‌ها
+                gatewayCountEl.textContent = gateways.length;
+
+                if (gateways.length === 0) {
+                    gatewaysTable.innerHTML = '<tr><td colspan="8" class="text-center">هیچ گیت‌وی‌ای یافت نشد</td></tr>';
+                    return;
+                }
+
                 gateways.forEach(gateway => {
                     const isOnline = gateway.status === 1;
-                    const gwData = summaryData.gateways[gateway.name] || { total: 0, online: 0 };
-                    
+                    const gwData = summaryData.gateways[gateway.name] || {
+                        total_clients: 0,
+                        online_clients: 0,
+                        total_plcs: 0,
+                        online_plcs: 0,
+                        avg_response: null
+                    };
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>
@@ -732,59 +1796,102 @@
                         </td>
                         <td>${gateway.ip}</td>
                         <td>
-                            <span class="badge badge-status ${isOnline ? 'bg-success' : 'bg-danger'}">
+                            <span class="badge ${isOnline ? 'bg-success' : 'bg-danger'} badge-status">
                                 ${isOnline ? 'آنلاین' : 'آفلاین'}
                             </span>
                         </td>
-                        <td>${gwData.online} از ${gwData.total}</td>
+                        <td>${formatNumber(gwData.online_clients)} از ${formatNumber(gwData.total_clients)}</td>
+                        <td>${formatNumber(gwData.online_plcs)} از ${formatNumber(gwData.total_plcs)}</td>
+                        <td>${gateway.responseTime ? formatNumber(Math.round(gateway.responseTime)) + ' ms' : '-'}</td>
                         <td>${formatDate(gateway.lastChecked)}</td>
                         <td>
-                            <a href="/download/history/${gateway.name}" class="btn btn-sm btn-outline-primary">
+                            <button class="btn btn-sm btn-outline-primary device-details-btn" data-device-name="${gateway.name}" data-device-type="gateway">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <a href="/download/history/${gateway.name}" class="btn btn-sm btn-outline-success ms-1">
                                 <i class="fas fa-download"></i>
                             </a>
                         </td>
                     `;
-                    
+
                     gatewaysTable.appendChild(row);
                 });
+
+                // اضافه کردن ایونت کلیک به دکمه‌های جزئیات
+                document.querySelectorAll('.device-details-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const deviceName = this.getAttribute('data-device-name');
+                        const deviceType = this.getAttribute('data-device-type');
+                        showDeviceDetails(deviceName, deviceType);
+                    });
+                });
             }
-            
-            // بروزرسانی نام‌های گیت‌وی در هدر بخش‌های کلاینت
+
+            // بروزرسانی نام‌های گیت‌وی در هدر بخش‌های کلاینت و PLC
             function updateGatewayNames(gateways) {
                 gateways.forEach(gateway => {
                     const nameElement = gatewayNameElements[gateway.name];
+                    const plcNameElement = plcGatewayNameElements[gateway.name];
+
                     if (nameElement) {
                         nameElement.textContent = gateway.name;
                     }
+
+                    if (plcNameElement) {
+                        plcNameElement.textContent = gateway.name;
+                    }
                 });
             }
-            
-            // بروزرسانی کلاینت‌های همه گیت‌وی‌ها
-            async function updateAllClients() {
-                const gatewayNames = ['gw1', 'gw2', 'gw3', 'gw4', 'gw5', 'gw6'];
-                
+
+            // بروزرسانی کلاینت‌ها و PLCهای همه گیت‌وی‌ها
+            async function updateAllClientsAndPlcs() {
                 for (const gwName of gatewayNames) {
                     try {
                         // دریافت کلاینت‌های گیت‌وی
-                        const response = await fetch(`/api/clients/${gwName}`);
-                        const clients = await response.json();
-                        
+                        const clientsResponse = await fetch(`/api/clients/${gwName}`);
+                        const clients = await clientsResponse.json();
+
+                        // دریافت PLCهای گیت‌وی
+                        const plcsResponse = await fetch(`/api/plcs/${gwName}`);
+                        const plcs = await plcsResponse.json();
+
+                        // ذخیره در متغیرهای کلی
+                        allClients[gwName] = clients;
+                        allPlcs[gwName] = plcs;
+
                         // بروزرسانی جدول کلاینت‌ها
                         updateClientsTable(gwName, clients);
-                        
+
+                        // بروزرسانی جدول PLCها
+                        updatePlcsTable(gwName, plcs);
+
                         // بروزرسانی لاگ‌های کلاینت‌ها
                         await updateClientLogs(gwName);
-                        
+
                     } catch (error) {
-                        console.error(`Error fetching clients for ${gwName}:`, error);
-                        // در صورت خطا، نمایش پیام خطا در جدول
+                        console.error(`Error fetching data for ${gwName}:`, error);
+
+                        // در صورت خطا، نمایش پیام خطا در جدول‌ها
                         const clientsTable = clientsElements[gwName];
+                        const plcsTable = plcsElements[gwName];
+
                         if (clientsTable) {
                             clientsTable.innerHTML = `
                                 <tr>
-                                    <td colspan="4" class="text-center text-danger">
+                                    <td colspan="5" class="text-center text-danger">
                                         <i class="fas fa-exclamation-triangle me-1"></i>
                                         خطا در دریافت اطلاعات کلاینت‌ها
+                                    </td>
+                                </tr>
+                            `;
+                        }
+
+                        if (plcsTable) {
+                            plcsTable.innerHTML = `
+                                <tr>
+                                    <td colspan="6" class="text-center text-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        خطا در دریافت اطلاعات PLCها
                                     </td>
                                 </tr>
                             `;
@@ -792,31 +1899,36 @@
                     }
                 }
             }
-            
+
             // بروزرسانی جدول کلاینت‌های یک گیت‌وی
             function updateClientsTable(gatewayName, clients) {
                 const clientsTable = clientsElements[gatewayName];
-                if (!clientsTable) return;
-                
+                const clientsCountEl = clientsCountElements[gatewayName];
+
+                if (!clientsTable || !clientsCountEl) return;
+
+                // بروزرسانی شمارنده تعداد کلاینت‌ها
+                clientsCountEl.textContent = clients.length;
+
                 // پاک کردن محتوای قبلی
                 clientsTable.innerHTML = '';
-                
+
                 // اگر کلاینتی وجود نداشت
                 if (clients.length === 0) {
                     clientsTable.innerHTML = `
                         <tr>
-                            <td colspan="4" class="text-center">
+                            <td colspan="5" class="text-center">
                                 هیچ کلاینتی یافت نشد
                             </td>
                         </tr>
                     `;
                     return;
                 }
-                
+
                 // نمایش کلاینت‌ها
                 clients.forEach(client => {
                     const isOnline = client.status === 1;
-                    
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>
@@ -825,92 +1937,187 @@
                         </td>
                         <td>${client.ip}</td>
                         <td>
-                            <span class="badge badge-status ${isOnline ? 'bg-success' : 'bg-danger'}">
+                            <span class="badge ${isOnline ? 'bg-success' : 'bg-danger'} badge-status">
                                 ${isOnline ? 'آنلاین' : 'آفلاین'}
                             </span>
                         </td>
+                        <td>${client.responseTime ? formatNumber(Math.round(client.responseTime)) + ' ms' : '-'}</td>
                         <td>
-                            <a href="/download/history/${client.name}" class="btn btn-sm btn-outline-primary">
+                            <button class="btn btn-sm btn-outline-primary device-details-btn" data-device-name="${client.name}" data-device-type="client">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <a href="/download/history/${client.name}" class="btn btn-sm btn-outline-success ms-1">
                                 <i class="fas fa-download"></i>
                             </a>
                         </td>
                     `;
-                    
+
                     clientsTable.appendChild(row);
                 });
+
+                // اضافه کردن ایونت کلیک به دکمه‌های جزئیات
+                clientsTable.querySelectorAll('.device-details-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const deviceName = this.getAttribute('data-device-name');
+                        const deviceType = this.getAttribute('data-device-type');
+                        showDeviceDetails(deviceName, deviceType);
+                    });
+                });
             }
-            
+
+            // بروزرسانی جدول PLCهای یک گیت‌وی
+            function updatePlcsTable(gatewayName, plcs) {
+                const plcsTable = plcsElements[gatewayName];
+                const plcsCountEl = plcsCountElements[gatewayName];
+
+                if (!plcsTable || !plcsCountEl) return;
+
+                // بروزرسانی شمارنده تعداد PLCها
+                plcsCountEl.textContent = plcs.length;
+
+                // پاک کردن محتوای قبلی
+                plcsTable.innerHTML = '';
+
+                // اگر PLCای وجود نداشت
+                if (plcs.length === 0) {
+                    plcsTable.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                هیچ PLCای یافت نشد
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                // نمایش PLCها
+                plcs.forEach(plc => {
+                    const isOnline = plc.status === 1;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <span class="status-indicator ${isOnline ? 'status-online' : 'status-offline'}"></span>
+                            ${plc.name}
+                        </td>
+                        <td>${plc.ip}</td>
+                        <td>${plc.parentClient}</td>
+                        <td>
+                            <span class="badge ${isOnline ? 'bg-success' : 'bg-danger'} badge-status">
+                                ${isOnline ? 'آنلاین' : 'آفلاین'}
+                            </span>
+                        </td>
+                        <td>${plc.responseTime ? formatNumber(Math.round(plc.responseTime)) + ' ms' : '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary device-details-btn" data-device-name="${plc.name}" data-device-type="plc">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                            <a href="/download/history/${plc.name}?type=plc" class="btn btn-sm btn-outline-success ms-1">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </td>
+                    `;
+
+                    plcsTable.appendChild(row);
+                });
+
+                // اضافه کردن ایونت کلیک به دکمه‌های جزئیات
+                plcsTable.querySelectorAll('.device-details-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const deviceName = this.getAttribute('data-device-name');
+                        const deviceType = this.getAttribute('data-device-type');
+                        showDeviceDetails(deviceName, deviceType);
+                    });
+                });
+            }
+
             // بروزرسانی لاگ‌های کلاینت‌های یک گیت‌وی
             async function updateClientLogs(gatewayName) {
                 try {
                     // دریافت کلاینت‌های گیت‌وی
-                    const clientsResponse = await fetch(`/api/clients/${gatewayName}`);
-                    const clients = await clientsResponse.json();
-                    
+                    const clients = allClients[gatewayName] || [];
+
                     // لاگ کانتینر مربوطه
                     const logContainer = logElements[gatewayName];
                     if (!logContainer) return;
-                    
+
                     // پاک کردن محتوای قبلی
                     logContainer.innerHTML = '';
-                    
+
                     // اگر کلاینتی وجود نداشت
                     if (clients.length === 0) {
                         logContainer.innerHTML = '<div class="text-center text-muted">لاگی موجود نیست</div>';
                         return;
                     }
-                    
+
                     // برای هر کلاینت، تاریخچه را دریافت کن
                     let allLogs = [];
-                    
+
                     for (const client of clients) {
                         try {
-                            const historyResponse = await fetch(`/api/history/${client.name}?limit=5`);
+                            const historyResponse = await fetch(`/api/history/${client.name}?limit=3`);
                             const history = await historyResponse.json();
-                            
+
                             // افزودن لاگ‌ها به آرایه کلی
                             allLogs = [...allLogs, ...history];
                         } catch (error) {
                             console.error(`Error fetching history for ${client.name}:`, error);
                         }
                     }
-                    
+
                     // افزودن تاریخچه خود گیت‌وی
                     try {
-                        const gwHistoryResponse = await fetch(`/api/history/${gatewayName}?limit=5`);
+                        const gwHistoryResponse = await fetch(`/api/history/${gatewayName}?limit=3`);
                         const gwHistory = await gwHistoryResponse.json();
                         allLogs = [...allLogs, ...gwHistory];
                     } catch (error) {
                         console.error(`Error fetching history for gateway ${gatewayName}:`, error);
                     }
-                    
+
+                    // افزودن تاریخچه PLCها
+                    const plcs = allPlcs[gatewayName] || [];
+                    for (const plc of plcs) {
+                        try {
+                            const plcHistoryResponse = await fetch(`/api/history/${plc.name}?limit=3&type=plc`);
+                            const plcHistory = await plcHistoryResponse.json();
+
+                            // افزودن لاگ‌ها به آرایه کلی
+                            allLogs = [...allLogs, ...plcHistory];
+                        } catch (error) {
+                            console.error(`Error fetching history for ${plc.name}:`, error);
+                        }
+                    }
+
                     // مرتب‌سازی بر اساس زمان (جدیدترین اول)
                     allLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    
+
                     // محدود کردن به 10 لاگ آخر
                     allLogs = allLogs.slice(0, 10);
-                    
+
                     // اگر لاگی وجود نداشت
                     if (allLogs.length === 0) {
                         logContainer.innerHTML = '<div class="text-center text-muted">لاگی موجود نیست</div>';
                         return;
                     }
-                    
+
                     // نمایش لاگ‌ها
                     allLogs.forEach(log => {
                         const isOnline = log.status === 1;
+                        const deviceType = log.type === 'gateway' ? 'گیت‌وی' :
+                                          log.type === 'client' ? 'کلاینت' : 'PLC';
+
                         const entry = document.createElement('div');
                         entry.className = `log-entry ${isOnline ? 'log-online' : 'log-offline'}`;
                         entry.innerHTML = `
                             <div class="d-flex justify-content-between align-items-center">
-                                <span>${log.name}: ${isOnline ? 'متصل شد' : 'قطع شد'}</span>
+                                <span><b>${log.name}</b> (${deviceType}): ${isOnline ? 'متصل شد' : 'قطع شد'}</span>
                                 <small class="text-muted">${formatTime(log.timestamp)}</small>
                             </div>
                         `;
-                        
+
                         logContainer.appendChild(entry);
                     });
-                    
+
                 } catch (error) {
                     console.error(`Error updating logs for ${gatewayName}:`, error);
                     const logContainer = logElements[gatewayName];
@@ -919,38 +2126,1107 @@
                     }
                 }
             }
-            
-            // فرمت تاریخ کامل
-            function formatDate(dateStr) {
-                if (!dateStr) return 'نامشخص';
-                
-                const date = new Date(dateStr);
-                const options = { 
-                    year: 'numeric', 
-                    month: 'numeric', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                };
-                return date.toLocaleString('fa-IR', options);
+
+            // بروزرسانی هشدارها
+            function updateAlerts(alerts) {
+                const container = document.getElementById('alerts-container');
+
+                if (!container) return;
+
+                if (alerts.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3"></i>
+                            <p>هیچ هشدار فعالی وجود ندارد</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                alerts.forEach(alert => {
+                    const alertItem = document.createElement('div');
+
+                    // تعیین نوع هشدار
+                    let alertClass = 'alert-warning';
+                    let alertIcon = 'fa-exclamation-triangle';
+
+                    if (alert.alert_type.includes('disconnect')) {
+                        alertClass = 'alert-disconnect';
+                        alertIcon = 'fa-times-circle';
+                    } else if (alert.alert_type.includes('reconnect')) {
+                        alertClass = 'alert-reconnect';
+                        alertIcon = 'fa-check-circle';
+                    }
+
+                    // تعیین نوع دستگاه
+                    let deviceTypeText = '';
+                    switch (alert.device_type) {
+                        case 'gateway':
+                            deviceTypeText = 'گیت‌وی';
+                            break;
+                        case 'client':
+                            deviceTypeText = 'کلاینت';
+                            break;
+                        case 'plc':
+                            deviceTypeText = 'PLC';
+                            break;
+                        default:
+                            deviceTypeText = 'دستگاه';
+                    }
+
+                    alertItem.className = `alert-item ${alertClass}`;
+                    alertItem.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas ${alertIcon} me-2"></i>
+                                <strong>${alert.device_name}</strong> (${deviceTypeText}): ${alert.message}
+                                ${alert.parent_gateway ? `<small class="text-muted ms-2">گیت‌وی: ${alert.parent_gateway}</small>` : ''}
+                            </div>
+                            <small class="text-muted">${formatDate(alert.created_at)}</small>
+                        </div>
+                    `;
+
+                    container.appendChild(alertItem);
+                });
+
+                // اضافه کردن فیلتر برای هشدارها
+                document.querySelectorAll('.alert-filter').forEach(filterBtn => {
+                    filterBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const filter = this.getAttribute('data-filter');
+                        filterAlerts(filter);
+                    });
+                });
             }
-            
-            // فرمت زمان (بدون تاریخ)
-            function formatTime(dateStr) {
-                if (!dateStr) return 'نامشخص';
-                
-                const date = new Date(dateStr);
-                const options = { 
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                };
-                return date.toLocaleString('fa-IR', options);
+
+            // فیلتر کردن هشدارها
+            function filterAlerts(filter) {
+                const alertItems = document.querySelectorAll('.alert-item');
+
+                alertItems.forEach(item => {
+                    if (filter === 'all') {
+                        item.style.display = 'block';
+                    } else {
+                        if (item.innerHTML.toLowerCase().includes(filter)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    }
+                });
             }
-            
+
+            // نمایش جزئیات دستگاه
+            async function showDeviceDetails(deviceName, deviceType) {
+                const modal = new bootstrap.Modal(document.getElementById('deviceDetailsModal'));
+
+                // تنظیم عنوان مدال
+                document.getElementById('deviceDetailsModalLabel').textContent = `جزئیات ${deviceType === 'gateway' ? 'گیت‌وی' : deviceType === 'client' ? 'کلاینت' : 'PLC'}: ${deviceName}`;
+
+                // تنظیم آیکون دستگاه
+                const deviceIcon = document.getElementById('device-icon');
+                const deviceIconInner = deviceIcon.querySelector('i') || document.createElement('i');
+
+                if (deviceType === 'gateway') {
+                    deviceIcon.className = 'device-icon gateway-icon';
+                    deviceIconInner.className = 'fas fa-server';
+                } else if (deviceType === 'client') {
+                    deviceIcon.className = 'device-icon client-icon';
+                    deviceIconInner.className = 'fas fa-desktop';
+                } else {
+                    deviceIcon.className = 'device-icon plc-icon';
+                    deviceIconInner.className = 'fas fa-microchip';
+                }
+
+                if (!deviceIcon.contains(deviceIconInner)) {
+                    deviceIcon.appendChild(deviceIconInner);
+                }
+
+                // نمایش "در حال بارگذاری" در بخش‌های مختلف
+                document.getElementById('modal-device-name').textContent = deviceName;
+                document.getElementById('modal-device-ip').textContent = 'در حال بارگذاری...';
+                document.getElementById('modal-device-type').textContent = deviceType === 'gateway' ? 'گیت‌وی' : deviceType === 'client' ? 'کلاینت' : 'PLC';
+                document.getElementById('modal-last-checked').textContent = 'در حال بارگذاری...';
+                document.getElementById('modal-response-time').textContent = 'در حال بارگذاری...';
+
+                // مخفی/نمایش کردن بخش‌های مربوط به گیت‌وی مرتبط و کلاینت مرتبط
+                const parentGatewayContainer = document.getElementById('modal-parent-gateway-container');
+                const parentClientContainer = document.getElementById('modal-parent-client-container');
+
+                if (deviceType === 'gateway') {
+                    parentGatewayContainer.style.display = 'none';
+                    parentClientContainer.style.display = 'none';
+                } else if (deviceType === 'client') {
+                    parentGatewayContainer.style.display = 'block';
+                    parentClientContainer.style.display = 'none';
+                    document.getElementById('modal-parent-gateway').textContent = 'در حال بارگذاری...';
+                } else {
+                    parentGatewayContainer.style.display = 'block';
+                    parentClientContainer.style.display = 'block';
+                    document.getElementById('modal-parent-gateway').textContent = 'در حال بارگذاری...';
+                    document.getElementById('modal-parent-client').textContent = 'در حال بارگذاری...';
+                }
+
+                // تنظیم لینک دانلود تاریخچه
+                const downloadLink = document.getElementById('modal-download-history');
+                if (deviceType === 'plc') {
+                    downloadLink.href = `/download/history/${deviceName}?type=plc`;
+                } else {
+                    downloadLink.href = `/download/history/${deviceName}`;
+                }
+
+                // نمایش مدال
+                modal.show();
+
+                // دریافت اطلاعات دستگاه از API
+                try {
+                    // دریافت تاریخچه دستگاه
+                    const historyResponse = await fetch(`/api/history/${deviceName}?limit=20${deviceType === 'plc' ? '&type=plc' : ''}`);
+                    const historyData = await historyResponse.json();
+
+                    // یافتن آخرین وضعیت دستگاه از تاریخچه
+                    let deviceData = null;
+                    if (historyData.length > 0) {
+                        deviceData = historyData[0];
+                    }
+
+                    // بروزرسانی اطلاعات دستگاه در مدال
+                    if (deviceData) {
+                        document.getElementById('modal-device-ip').textContent = deviceData.ip;
+                        document.getElementById('modal-last-checked').textContent = formatDate(deviceData.timestamp);
+
+                        const isOnline = deviceData.status === 1;
+                        const statusEl = document.getElementById('modal-device-status');
+                        statusEl.textContent = isOnline ? 'آنلاین' : 'آفلاین';
+                        statusEl.className = `status ${isOnline ? 'bg-success' : 'bg-danger'} text-white`;
+
+                        if (deviceData.responseTime) {
+                            document.getElementById('modal-response-time').textContent = `${formatNumber(Math.round(deviceData.responseTime))} میلی‌ثانیه`;
+                        } else {
+                            document.getElementById('modal-response-time').textContent = '-';
+                        }
+
+                        if (deviceType === 'client' || deviceType === 'plc') {
+                            document.getElementById('modal-parent-gateway').textContent = deviceData.parent_gateway || deviceData.parentGateway || '-';
+                        }
+
+                        if (deviceType === 'plc' && deviceData.parentClient) {
+                            document.getElementById('modal-parent-client').textContent = deviceData.parentClient;
+                        }
+                    }
+
+                    // نمایش تاریخچه دستگاه در جدول
+                    const historyTableBody = document.getElementById('modal-device-history');
+                    historyTableBody.innerHTML = '';
+
+                    if (historyData.length === 0) {
+                        historyTableBody.innerHTML = '<tr><td colspan="3" class="text-center">تاریخچه‌ای یافت نشد</td></tr>';
+                    } else {
+                        historyData.forEach(item => {
+                            const isOnline = item.status === 1;
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>
+                                    <span class="badge ${isOnline ? 'bg-success' : 'bg-danger'} badge-status">
+                                        ${isOnline ? 'آنلاین' : 'آفلاین'}
+                                    </span>
+                                </td>
+                                <td>${item.responseTime ? formatNumber(Math.round(item.responseTime)) + ' ms' : '-'}</td>
+                                <td>${formatDate(item.timestamp)}</td>
+                            `;
+                            historyTableBody.appendChild(row);
+                        });
+                    }
+
+                    // دریافت و نمایش داده‌های عملکرد در نمودار
+                    const timerange = document.getElementById('performance-timerange').value;
+                    await updateDevicePerformanceChart(deviceName, deviceType, timerange);
+
+                } catch (error) {
+                    console.error(`Error fetching details for ${deviceName}:`, error);
+
+                    // نمایش پیام خطا در صورت بروز مشکل
+                    document.getElementById('modal-device-ip').textContent = 'خطا در دریافت اطلاعات';
+                    document.getElementById('modal-last-checked').textContent = 'خطا در دریافت اطلاعات';
+                    document.getElementById('modal-response-time').textContent = 'خطا در دریافت اطلاعات';
+
+                    if (deviceType === 'client' || deviceType === 'plc') {
+                        document.getElementById('modal-parent-gateway').textContent = 'خطا در دریافت اطلاعات';
+                    }
+
+                    if (deviceType === 'plc') {
+                        document.getElementById('modal-parent-client').textContent = 'خطا در دریافت اطلاعات';
+                    }
+
+                    document.getElementById('modal-device-history').innerHTML =
+                        '<tr><td colspan="3" class="text-center text-danger">خطا در دریافت تاریخچه</td></tr>';
+                }
+            }
+
+            // بروزرسانی نمودار عملکرد دستگاه
+            async function updateDevicePerformanceChart(deviceName, deviceType, timespan) {
+                try {
+                    // دریافت داده‌های عملکرد
+                    const performanceResponse = await fetch(`/api/performance/${deviceName}?type=${deviceType}&timespan=${timespan}`);
+                    const performanceData = await performanceResponse.json();
+
+                    // حذف نمودار قبلی اگر وجود دارد
+                    if (chartInstances.devicePerformance) {
+                        chartInstances.devicePerformance.destroy();
+                    }
+
+                    // اگر داده‌ای وجود نداشت
+                    if (performanceData.length === 0) {
+                        document.getElementById('device-performance-chart').getContext('2d').clearRect(0, 0,
+                            document.getElementById('device-performance-chart').width,
+                            document.getElementById('device-performance-chart').height
+                        );
+                        return;
+                    }
+
+                    // آماده‌سازی داده‌ها برای نمودار
+                    const labels = performanceData.map(item => moment(item.timestamp).locale('fa').format('HH:mm - jYYYY/jMM/jDD'));
+                    const responseTimeData = performanceData.map(item => item.responseTime);
+                    const packetLossData = performanceData.map(item => item.packetLoss);
+
+                    // ایجاد نمودار جدید
+                    const ctx = document.getElementById('device-performance-chart').getContext('2d');
+                    chartInstances.devicePerformance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'زمان پاسخ (ms)',
+                                    data: responseTimeData,
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.2,
+                                    fill: true,
+                                    yAxisID: 'y'
+                                },
+                                {
+                                    label: 'میزان خطا (%)',
+                                    data: packetLossData,
+                                    borderColor: '#ef4444',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.2,
+                                    fill: true,
+                                    yAxisID: 'y1'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: {
+                                        display: true,
+                                        text: 'زمان پاسخ (ms)'
+                                    }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: {
+                                        display: true,
+                                        text: 'میزان خطا (%)'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    },
+                                    min: 0,
+                                    max: 100
+                                },
+                                x: {
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    rtl: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += formatNumber(context.parsed.y);
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                },
+                                legend: {
+                                    labels: {
+                                        font: {
+                                            family: 'Vazir'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.error(`Error fetching performance data for ${deviceName}:`, error);
+                    if (chartInstances.devicePerformance) {
+                        chartInstances.devicePerformance.destroy();
+                        chartInstances.devicePerformance = null;
+                    }
+                }
+            }
+
+            // بروزرسانی نمودارها
+            function updateCharts() {
+                updateNetworkStatsChart();
+                updateResponseTimeChart();
+            }
+
+            // بروزرسانی نمودار آمار کلی وضعیت شبکه
+            async function updateNetworkStatsChart() {
+                try {
+                    // گرفتن تاریخچه اخیر برای همه دستگاه‌ها
+                    const historyResponse = await fetch('/api/recent_history?limit=500');
+                    const historyData = await historyResponse.json();
+
+                    // اگر نمودار قبلی وجود دارد، آن را حذف کن
+                    if (chartInstances.networkStats) {
+                        chartInstances.networkStats.destroy();
+                    }
+
+                    // اگر داده‌ای وجود نداشت
+                    if (historyData.length === 0) {
+                        return;
+                    }
+
+                    // گروه‌بندی داده‌ها بر اساس تاریخ (روزانه)
+                    const groupedData = {};
+                    historyData.forEach(item => {
+                        const date = moment(item.timestamp).format('YYYY-MM-DD');
+                        if (!groupedData[date]) {
+                            groupedData[date] = {
+                                total: 0,
+                                online: 0,
+                                offline: 0
+                            };
+                        }
+
+                        groupedData[date].total++;
+                        if (item.status === 1) {
+                            groupedData[date].online++;
+                        } else {
+                            groupedData[date].offline++;
+                        }
+                    });
+
+                    // مرتب‌سازی تاریخ‌ها
+                    const sortedDates = Object.keys(groupedData).sort();
+
+                    // آماده‌سازی داده‌ها برای نمودار
+                    const labels = sortedDates.map(date => moment(date).locale('fa').format('jYYYY/jMM/jDD'));
+                    const onlineData = sortedDates.map(date => groupedData[date].online);
+                    const offlineData = sortedDates.map(date => groupedData[date].offline);
+                    const uptimeData = sortedDates.map(date => {
+                        const total = groupedData[date].total;
+                        const online = groupedData[date].online;
+                        return total > 0 ? Math.round((online / total) * 100) : 0;
+                    });
+
+                    // ایجاد نمودار جدید
+                    const ctx = document.getElementById('network-stats-chart').getContext('2d');
+                    chartInstances.networkStats = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'دستگاه‌های آنلاین',
+                                    data: onlineData,
+                                    backgroundColor: '#22c55e',
+                                    borderColor: '#16a34a',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'دستگاه‌های آفلاین',
+                                    data: offlineData,
+                                    backgroundColor: '#ef4444',
+                                    borderColor: '#dc2626',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'درصد آپ‌تایم',
+                                    data: uptimeData,
+                                    type: 'line',
+                                    fill: false,
+                                    borderColor: '#3b82f6',
+                                    borderWidth: 2,
+                                    tension: 0.2,
+                                    yAxisID: 'y1'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: {
+                                        display: true,
+                                        text: 'تعداد دستگاه‌ها'
+                                    }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: {
+                                        display: true,
+                                        text: 'درصد آپ‌تایم'
+                                    },
+                                    grid: {
+                                        drawOnChartArea: false
+                                    },
+                                    min: 0,
+                                    max: 100
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    rtl: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += formatNumber(context.parsed.y);
+                                                if (context.dataset.label === 'درصد آپ‌تایم') {
+                                                    label += '%';
+                                                }
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                },
+                                legend: {
+                                    labels: {
+                                        font: {
+                                            family: 'Vazir'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.error('Error updating network stats chart:', error);
+                }
+            }
+
+            // بروزرسانی نمودار زمان پاسخ دستگاه‌ها
+            async function updateResponseTimeChart() {
+                try {
+                    // گرفتن داده‌های عملکرد برای همه دستگاه‌ها
+                    const summaryResponse = await fetch('/api/summary');
+                    const summaryData = await summaryResponse.json();
+
+                    // اگر نمودار قبلی وجود دارد، آن را حذف کن
+                    if (chartInstances.responseTime) {
+                        chartInstances.responseTime.destroy();
+                    }
+
+                    // داده‌ها برای نمودار
+                    const gatewayData = [];
+                    const labels = [];
+
+                    // بررسی آمار گیت‌وی‌ها
+                    for (const gwName in summaryData.gateways) {
+                        const gwData = summaryData.gateways[gwName];
+                        if (gwData.avg_response) {
+                            labels.push(gwName);
+                            gatewayData.push(gwData.avg_response);
+                        }
+                    }
+
+                    // اگر داده‌ای وجود نداشت
+                    if (labels.length === 0) {
+                        return;
+                    }
+
+                    // ایجاد نمودار جدید
+                    const ctx = document.getElementById('response-time-chart').getContext('2d');
+                    chartInstances.responseTime = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'میانگین زمان پاسخ (ms)',
+                                    data: gatewayData,
+                                    backgroundColor: (context) => {
+                                        const value = context.dataset.data[context.dataIndex];
+                                        return value < 50 ? '#22c55e' :
+                                               value < 150 ? '#eab308' : '#ef4444';
+                                    },
+                                    borderColor: '#1e293b',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'زمان پاسخ (ms)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    rtl: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += formatNumber(context.parsed.y) + ' ms';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                },
+                                legend: {
+                                    labels: {
+                                        font: {
+                                            family: 'Vazir'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // بروزرسانی سلکت‌باکس دستگاه‌ها
+                    updateDevicesDropdown();
+
+                } catch (error) {
+                    console.error('Error updating response time chart:', error);
+                }
+            }
+
+            // بروزرسانی سلکت‌باکس دستگاه‌ها برای گزارش‌ها
+            function updateDevicesDropdown() {
+                const deviceSelect = document.getElementById('history-device-select');
+                if (!deviceSelect) return;
+
+                // حفظ مقدار فعلی
+                const currentValue = deviceSelect.value;
+
+                // پاک کردن گزینه‌های قبلی
+                while (deviceSelect.options.length > 1) {
+                    deviceSelect.remove(1);
+                }
+
+                // افزودن گزینه‌ها برای گیت‌وی‌ها
+                if (allGateways.length > 0) {
+                    const gatewaysGroup = document.createElement('optgroup');
+                    gatewaysGroup.label = 'گیت‌وی‌ها';
+
+                    allGateways.forEach(gateway => {
+                        const option = document.createElement('option');
+                        option.value = `gateway-${gateway.name}`;
+                        option.textContent = gateway.name;
+                        gatewaysGroup.appendChild(option);
+                    });
+
+                    deviceSelect.appendChild(gatewaysGroup);
+                }
+
+                // افزودن گزینه‌ها برای کلاینت‌ها
+                const clientsGroup = document.createElement('optgroup');
+                clientsGroup.label = 'کلاینت‌ها';
+                let hasClients = false;
+
+                for (const gwName in allClients) {
+                    const clients = allClients[gwName];
+                    if (clients.length > 0) {
+                        hasClients = true;
+                        clients.forEach(client => {
+                            const option = document.createElement('option');
+                            option.value = `client-${client.name}`;
+                            option.textContent = `${client.name} (${gwName})`;
+                            clientsGroup.appendChild(option);
+                        });
+                    }
+                }
+
+                if (hasClients) {
+                    deviceSelect.appendChild(clientsGroup);
+                }
+
+                // افزودن گزینه‌ها برای PLCها
+                const plcsGroup = document.createElement('optgroup');
+                plcsGroup.label = 'PLCها';
+                let hasPlcs = false;
+
+                for (const gwName in allPlcs) {
+                    const plcs = allPlcs[gwName];
+                    if (plcs.length > 0) {
+                        hasPlcs = true;
+                        plcs.forEach(plc => {
+                            const option = document.createElement('option');
+                            option.value = `plc-${plc.name}`;
+                            option.textContent = `${plc.name} (${gwName})`;
+                            plcsGroup.appendChild(option);
+                        });
+                    }
+                }
+
+                if (hasPlcs) {
+                    deviceSelect.appendChild(plcsGroup);
+                }
+
+                // بازیابی مقدار انتخاب شده قبلی
+                if (currentValue) {
+                    deviceSelect.value = currentValue;
+                }
+
+                // اضافه کردن ایونت تغییر برای سلکت‌باکس
+                deviceSelect.addEventListener('change', async function() {
+                    const value = this.value;
+                    if (!value) return;
+
+                    const [type, name] = value.split('-');
+                    await updateDeviceHistoryTable(name, type);
+                });
+
+                // بروزرسانی سلکت‌باکس دستگاه‌ها برای نمودار زمان پاسخ
+                const responseTimeDeviceSelect = document.getElementById('response-time-device');
+                if (responseTimeDeviceSelect) {
+                    // حفظ مقدار فعلی
+                    const currentResponseValue = responseTimeDeviceSelect.value;
+
+                    // پاک کردن گزینه‌های قبلی
+                    while (responseTimeDeviceSelect.options.length > 1) {
+                        responseTimeDeviceSelect.remove(1);
+                    }
+
+                    // کپی کردن گزینه‌ها از سلکت‌باکس قبلی
+                    for (let i = 1; i < deviceSelect.options.length; i++) {
+                        const option = deviceSelect.options[i];
+
+                        // اگر گروه است، یک گروه جدید بساز
+                        if (option.tagName === 'OPTGROUP') {
+                            const group = document.createElement('optgroup');
+                            group.label = option.label;
+
+                            // افزودن تمام گزینه‌های گروه
+                            for (let j = 0; j < option.options.length; j++) {
+                                const subOption = option.options[j].cloneNode(true);
+                                group.appendChild(subOption);
+                            }
+
+                            responseTimeDeviceSelect.appendChild(group);
+                        } else {
+                            // اگر گزینه معمولی است، کپی کن
+                            const newOption = option.cloneNode(true);
+                            responseTimeDeviceSelect.appendChild(newOption);
+                        }
+                    }
+
+                    // بازیابی مقدار انتخاب شده قبلی
+                    if (currentResponseValue) {
+                        responseTimeDeviceSelect.value = currentResponseValue;
+                    }
+
+                    // اضافه کردن ایونت تغییر برای سلکت‌باکس
+                    responseTimeDeviceSelect.addEventListener('change', async function() {
+                        const value = this.value;
+                        if (!value || value === 'all') {
+                            await updateResponseTimeChart();
+                            return;
+                        }
+
+                        const [type, name] = value.split('-');
+                        await updateDeviceResponseTimeChart(name, type);
+                    });
+                }
+            }
+
+            // بروزرسانی جدول تاریخچه دستگاه
+            async function updateDeviceHistoryTable(deviceName, deviceType) {
+                try {
+                    // دریافت تاریخچه دستگاه
+                    const historyResponse = await fetch(`/api/history/${deviceName}?limit=50${deviceType === 'plc' ? '&type=plc' : ''}`);
+                    const historyData = await historyResponse.json();
+
+                    const tableBody = document.getElementById('history-table-body');
+
+                    // پاک کردن محتوای قبلی
+                    tableBody.innerHTML = '';
+
+                    // اگر داده‌ای وجود نداشت
+                    if (historyData.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">برای این دستگاه تاریخچه‌ای یافت نشد</td></tr>';
+                        return;
+                    }
+
+                    // نمایش تاریخچه
+                    historyData.forEach(item => {
+                        const isOnline = item.status === 1;
+                        const row = document.createElement('tr');
+
+                        let deviceTypeText = '';
+                        switch (deviceType) {
+                            case 'gateway':
+                                deviceTypeText = 'گیت‌وی';
+                                break;
+                            case 'client':
+                                deviceTypeText = 'کلاینت';
+                                break;
+                            case 'plc':
+                                deviceTypeText = 'PLC';
+                                break;
+                            default:
+                                deviceTypeText = 'دستگاه';
+                        }
+
+                        row.innerHTML = `
+                            <td>${item.name}</td>
+                            <td>${deviceTypeText}</td>
+                            <td>
+                                <span class="badge ${isOnline ? 'bg-success' : 'bg-danger'} badge-status">
+                                    ${isOnline ? 'آنلاین' : 'آفلاین'}
+                                </span>
+                            </td>
+                            <td>${item.responseTime ? formatNumber(Math.round(item.responseTime)) + ' ms' : '-'}</td>
+                            <td>${formatDate(item.timestamp)}</td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+
+                } catch (error) {
+                    console.error(`Error fetching history for ${deviceName}:`, error);
+                    const tableBody = document.getElementById('history-table-body');
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">خطا در دریافت تاریخچه</td></tr>';
+                }
+            }
+
+            // بروزرسانی نمودار زمان پاسخ دستگاه
+            async function updateDeviceResponseTimeChart(deviceName, deviceType) {
+                try {
+                    // دریافت داده‌های عملکرد دستگاه
+                    const performanceResponse = await fetch(`/api/performance/${deviceName}?type=${deviceType}&timespan=7d`);
+                    const performanceData = await performanceResponse.json();
+
+                    // اگر نمودار قبلی وجود دارد، آن را حذف کن
+                    if (chartInstances.responseTime) {
+                        chartInstances.responseTime.destroy();
+                    }
+
+                    // اگر داده‌ای وجود نداشت
+                    if (performanceData.length === 0) {
+                        const ctx = document.getElementById('response-time-chart').getContext('2d');
+                        ctx.clearRect(0, 0,
+                            document.getElementById('response-time-chart').width,
+                            document.getElementById('response-time-chart').height
+                        );
+                        ctx.font = '14px Vazir';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('داده‌ای برای نمایش وجود ندارد',
+                            document.getElementById('response-time-chart').width / 2,
+                            document.getElementById('response-time-chart').height / 2
+                        );
+                        return;
+                    }
+
+                    // آماده‌سازی داده‌ها برای نمودار
+                    const labels = performanceData.map(item => moment(item.timestamp).locale('fa').format('HH:mm - jYYYY/jMM/jDD'));
+                    const responseTimeData = performanceData.map(item => item.responseTime);
+
+                    // ایجاد نمودار جدید
+                    const ctx = document.getElementById('response-time-chart').getContext('2d');
+                    chartInstances.responseTime = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: `زمان پاسخ ${deviceName} (ms)`,
+                                    data: responseTimeData,
+                                    borderColor: '#3b82f6',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.2,
+                                    fill: true
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'زمان پاسخ (ms)'
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    rtl: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += formatNumber(context.parsed.y) + ' ms';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                },
+                                legend: {
+                                    labels: {
+                                        font: {
+                                            family: 'Vazir'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                } catch (error) {
+                    console.error(`Error updating response time chart for ${deviceName}:`, error);
+                    if (chartInstances.responseTime) {
+                        chartInstances.responseTime.destroy();
+                        chartInstances.responseTime = null;
+                    }
+                }
+            }
+
+            // ساخت نقشه شبکه
+            function buildNetworkMap() {
+                const container = document.getElementById('network-map-container');
+                if (!container) return;
+
+                // پاک کردن محتوای قبلی
+                container.innerHTML = '';
+
+                // اگر هنوز داده‌ها بارگذاری نشده‌اند
+                if (allGateways.length === 0) {
+                    container.innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-3x mb-3"></i><p>در حال بارگذاری...</p></div>';
+                    return;
+                }
+
+                // ایجاد المان‌های نقشه
+                allGateways.forEach(gateway => {
+                    const isGatewayOnline = gateway.status === 1;
+
+                    // ایجاد کانتینر گیت‌وی
+                    const gatewayContainer = document.createElement('div');
+                    gatewayContainer.className = 'd-inline-block text-center mx-3 mb-5';
+
+                    // ایجاد نود گیت‌وی
+                    const gatewayNode = document.createElement('div');
+                    gatewayNode.className = 'gateway-node';
+                    gatewayNode.innerHTML = `
+                        <div class="node-icon">
+                            <i class="fas fa-server"></i>
+                        </div>
+                        <div class="node-name">${gateway.name}</div>
+                        <div class="node-status ${isGatewayOnline ? 'node-online' : 'node-offline'}">
+                            ${isGatewayOnline ? 'آنلاین' : 'آفلاین'}
+                        </div>
+                    `;
+
+                    gatewayContainer.appendChild(gatewayNode);
+
+                    // ایجاد کانتینر برای کلاینت‌ها
+                    const clientsContainer = document.createElement('div');
+                    clientsContainer.className = 'd-flex flex-wrap justify-content-center mt-4';
+
+                    // اضافه کردن کلاینت‌ها
+                    const clients = allClients[gateway.name] || [];
+                    clients.forEach(client => {
+                        const isClientOnline = client.status === 1;
+
+                        // ایجاد نود کلاینت
+                        const clientNode = document.createElement('div');
+                        clientNode.className = 'client-node mx-2';
+                        clientNode.innerHTML = `
+                            <div class="node-icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <div class="node-name">${client.name}</div>
+                            <div class="node-status ${isClientOnline ? 'node-online' : 'node-offline'}">
+                                ${isClientOnline ? 'آنلاین' : 'آفلاین'}
+                            </div>
+                        `;
+
+                        clientsContainer.appendChild(clientNode);
+
+                        // اضافه کردن PLC مرتبط با این کلاینت
+                        const plcs = allPlcs[gateway.name] || [];
+                        const matchingPlc = plcs.find(plc => plc.parentClient === client.name);
+
+                        if (matchingPlc) {
+                            const isPlcOnline = matchingPlc.status === 1;
+
+                            // ایجاد نود PLC
+                            const plcContainer = document.createElement('div');
+                            plcContainer.className = 'd-flex flex-column align-items-center';
+
+                            // خط اتصال
+                            const connectionLine = document.createElement('div');
+                            connectionLine.style.height = '20px';
+                            connectionLine.style.width = '2px';
+                            connectionLine.style.backgroundColor = '#94a3b8';
+                            connectionLine.style.margin = '5px 0';
+
+                            // نود PLC
+                            const plcNode = document.createElement('div');
+                            plcNode.className = 'plc-node';
+                            plcNode.innerHTML = `
+                                <div class="node-icon">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                                <div class="node-name">${matchingPlc.name}</div>
+                                <div class="node-status ${isPlcOnline ? 'node-online' : 'node-offline'}">
+                                    ${isPlcOnline ? 'آنلاین' : 'آفلاین'}
+                                </div>
+                            `;
+
+                            plcContainer.appendChild(connectionLine);
+                            plcContainer.appendChild(plcNode);
+                            clientNode.appendChild(plcContainer);
+                        }
+                    });
+
+                    gatewayContainer.appendChild(clientsContainer);
+                    container.appendChild(gatewayContainer);
+                });
+
+                // اضافه کردن دکمه آنیمیشن
+                const animationBtn = document.getElementById('toggle-animation-btn');
+                if (animationBtn) {
+                    animationBtn.addEventListener('click', function() {
+                        const isPlaying = this.querySelector('i').classList.contains('fa-pause');
+
+                        if (isPlaying) {
+                            // توقف آنیمیشن
+                            this.querySelector('i').classList.remove('fa-pause');
+                            this.querySelector('i').classList.add('fa-play');
+                            this.innerHTML = '<i class="fas fa-play me-1"></i> نمایش انیمیشن';
+
+                            // حذف کلاس آنیمیشن
+                            document.querySelectorAll('.status-online').forEach(el => {
+                                el.style.animation = 'none';
+                            });
+
+                            document.querySelectorAll('.status-offline').forEach(el => {
+                                el.style.animation = 'none';
+                            });
+                        } else {
+                            // شروع آنیمیشن
+                            this.querySelector('i').classList.remove('fa-play');
+                            this.querySelector('i').classList.add('fa-pause');
+                            this.innerHTML = '<i class="fas fa-pause me-1"></i> توقف انیمیشن';
+
+                            // اضافه کردن کلاس آنیمیشن
+                            document.querySelectorAll('.status-online').forEach(el => {
+                                el.style.animation = 'pulse-green 2s infinite';
+                            });
+
+                            document.querySelectorAll('.status-offline').forEach(el => {
+                                el.style.animation = 'pulse-red 2s infinite';
+                            });
+                        }
+                    });
+                }
+            }
+
+            // بررسی فوری دستگاه‌ها (ارسال درخواست به سرور)
+            async function checkDevicesNow() {
+                try {
+                    checkNowBtn.disabled = true;
+                    checkNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> در حال بررسی...';
+
+                    const response = await fetch('/api/check_now');
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        // نمایش پیام موفقیت
+                        checkNowBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> بررسی انجام شد';
+                        setTimeout(() => {
+                            checkNowBtn.disabled = false;
+                            checkNowBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> بررسی فوری';
+                        }, 3000);
+
+                        // بروزرسانی داده‌ها پس از یک ثانیه
+                        setTimeout(fetchData, 1000);
+                    } else {
+                        throw new Error('Server returned an error');
+                    }
+                } catch (error) {
+                    console.error('Error checking devices:', error);
+                    checkNowBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> خطا در بررسی';
+                    setTimeout(() => {
+                        checkNowBtn.disabled = false;
+                        checkNowBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> بررسی فوری';
+                    }, 3000);
+                }
+            }
+
             // شروع بروزرسانی خودکار
             function startAutoRefresh() {
                 if (autoRefreshInterval) {
@@ -959,15 +3235,45 @@
                 // بروزرسانی هر ۳۰ ثانیه
                 autoRefreshInterval = setInterval(fetchData, 30000);
             }
-            
+
             // اضافه کردن ایونت‌ها
             refreshBtn.addEventListener('click', fetchData);
-            
+            checkNowBtn.addEventListener('click', checkDevicesNow);
+
+            // بروزرسانی بازه زمانی نمودار عملکرد دستگاه در مدال
+            document.getElementById('performance-timerange').addEventListener('change', function() {
+                const deviceName = document.getElementById('modal-device-name').textContent;
+                const deviceType = document.getElementById('modal-device-type').textContent === 'گیت‌وی' ? 'gateway' :
+                                  document.getElementById('modal-device-type').textContent === 'کلاینت' ? 'client' : 'plc';
+
+                updateDevicePerformanceChart(deviceName, deviceType, this.value);
+            });
+
+            // بروزرسانی بازه زمانی نمودار آمار کلی شبکه
+            document.getElementById('network-stats-timerange').addEventListener('change', function() {
+                updateNetworkStatsChart();
+            });
+
+            // تب‌ها - بروزرسانی محتوا هنگام تغییر تب
+            document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(event) {
+                    const target = event.target.getAttribute('data-bs-target').substring(1);
+
+                    if (target === 'network-map') {
+                        buildNetworkMap();
+                    } else if (target === 'reports') {
+                        updateCharts();
+                    }
+                });
+            });
+
+
             // راه‌اندازی اولیه
             updateCurrentTime();
             setInterval(updateCurrentTime, 1000);
             fetchData();
             startAutoRefresh();
+            buildNetworkMap();
         });
     </script>
 </body>
